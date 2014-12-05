@@ -18,10 +18,12 @@ namespace Examples
                               Eegeo::Rendering::Mesh& mesh,
                               const Eegeo::v4& initialColor,
                               bool depthTest,
-                              bool alphaBlend
+                              bool alphaBlend,
+                              bool environmentFlattenTranslate,
+                              bool environmentFlattenScale
                               );
         
-        virtual void UpdateMVP(const Eegeo::Rendering::RenderContext& renderContext, float environmentFlatteningScale);
+        virtual Eegeo::m44 CalcModelViewProjection(const Eegeo::dv3& ecefCameraPosition, const Eegeo::m44& viewProjection, const float environmentFlatteningScale) const;
 
         virtual void Render(Eegeo::Rendering::GLState& glState) const;
         
@@ -31,6 +33,8 @@ namespace Examples
         void SetColor(const Eegeo::v4& color) { m_color = color; }
         void SetDepthTest(bool enabled) { m_depthTest = enabled; }
         void SetAlphaBlend(bool enabled) { m_alphaBlend = enabled; }
+        void SetEnvironmentFlattenTranslate(bool enabled) { m_environmentFlattenTranslate = enabled; }
+        void SetEnvironmentFlattenScale(bool enabled) { m_environmentFlattenScale = enabled; }
         
         const Eegeo::v4& GetColor() const { return m_color; }
         bool IsDepthTest() const { return m_depthTest; }
@@ -42,5 +46,7 @@ namespace Examples
         Eegeo::v4 m_color;
         bool m_depthTest;
         bool m_alphaBlend;
+        bool m_environmentFlattenTranslate;
+        bool m_environmentFlattenScale;
     };
 }

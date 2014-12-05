@@ -8,6 +8,7 @@
 #include "VertexBindingPool.h"
 #include "IMaterial.h"
 #include "Shader.h"
+#include "EnvironmentFlatteningService.h"
 
 namespace Examples
 {
@@ -18,12 +19,16 @@ namespace Examples
                                                  Eegeo::Rendering::Mesh& mesh,
                                                  const Eegeo::v4& initialColor,
                                                  bool depthTest,
-                                                 bool alphaBlend)
+                                                 bool alphaBlend,
+                                                 bool environmentFlattenTranslate,
+                                                 bool environmentFlattenScale)
     : Eegeo::Rendering::RenderableBase(layerId, ecefPosition, &material, vertexBinding)
     , m_mesh(mesh)
     , m_color(initialColor)
     , m_depthTest(depthTest)
     , m_alphaBlend(alphaBlend)
+    , m_environmentFlattenTranslate(environmentFlattenTranslate)
+    , m_environmentFlattenScale(environmentFlattenScale)
     , m_orientationEcef(Eegeo::m44::CreateIdentity())
     {
 
@@ -46,22 +51,32 @@ namespace Examples
         m_mesh.UnbindVertexBuffers(glState);
     }
     
-    void ExampleMeshRenderable::UpdateMVP(const Eegeo::Rendering::RenderContext& renderContext, float environmentFlatteningScale)
+    Eegeo::m44 ExampleMeshRenderable::CalcModelViewProjection(const Eegeo::dv3& ecefCameraPosition, const Eegeo::m44& viewProjection, const float environmentFlatteningScale) const
     {
-        const Eegeo::Camera::RenderCamera& renderCamera = renderContext.GetRenderCamera();
+        const Eegeo::dv3& flattenedEcefPosition = m_environmentFlattenTranslate
+            ? Eegeo::Rendering::EnvironmentFlatteningService::GetScaledPointEcef(GetEcefPosition(), environmentFlatteningScale)
+            : GetEcefPosition();
         
-        const Eegeo::m44& viewProjection = renderCamera.GetViewProjectionMatrix();
-        const Eegeo::dv3& ecefCameraPosition = renderCamera.GetEcefLocation();
-        
-        const Eegeo::v3& cameraRelativeModelOrigin = (GetEcefPosition() - ecefCameraPosition).ToSingle();
-        
-        Eegeo::m44 cameraRelativeModel;
-        Eegeo::Helpers::MathsHelpers::ComputeScaleAndOffset(cameraRelativeModel, environmentFlatteningScale, GetEcefPosition().Norm().ToSingle(), cameraRelativeModelOrigin);
-        
+        const Eegeo::v3& cameraRelativeModelOrigin = (flattenedEcefPosition - ecefCameraPosition).ToSingle();
+        Eegeo::m44 translateRotate;
+        translateRotate.SetFromBasis(m_orientationEcef.GetRow(0), m_orientationEcef.GetRow(1), m_orientationEcef.GetRow(2), cameraRelativeModelOrigin);
 
-        Eegeo::m44 orientedCameraRelativeModel;
-        Eegeo::m44::Mul(orientedCameraRelativeModel, cameraRelativeModel, m_orientationEcef);
+        Eegeo::m44 scale;
+        if (m_environmentFlattenScale)
+        {
+            scale.Scale(Eegeo::v3(1.0f, environmentFlatteningScale, 1.0f));
+        }
+        else
+        {
+            scale.Identity();
+        }
         
-        Eegeo::m44::Mul(m_modelViewProjection, viewProjection, orientedCameraRelativeModel);
+        Eegeo::m44 orientedCameraRelativeModel;
+        Eegeo::m44::Mul(orientedCameraRelativeModel, translateRotate, scale);
+        
+        
+        Eegeo::m44 modelViewProjection;
+        Eegeo::m44::Mul(modelViewProjection, viewProjection, orientedCameraRelativeModel);
+        return modelViewProjection;
     }
 }

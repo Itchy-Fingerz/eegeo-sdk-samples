@@ -26,6 +26,8 @@
 #include "RenderableFilters.h"
 #include "EnvironmentFlatteningService.h"
 #include "CameraHelpers.h"
+#include "RenderContext.h"
+#include "RenderCamera.h"
 
 
 #include <algorithm>
@@ -112,6 +114,9 @@ namespace Examples
             const Eegeo::Rendering::LayerIds::Values renderLayer = Eegeo::Rendering::LayerIds::BeforeWorldTranslucency;
             const bool depthTest = true;
             const bool alphaBlend = true;
+            const bool translateWithEnvironmentFlattening = true;
+            const bool scaleWithEnvironmentFlattening = true;
+            
             ExampleMeshRenderable* pUnlitBoxRenderable = new ExampleMeshRenderable(renderLayer,
                                                                                    ecefPosition,
                                                                                    material,
@@ -119,7 +124,9 @@ namespace Examples
                                                                                    mesh,
                                                                                    Eegeo::Rendering::Colors::WHITE,
                                                                                    depthTest,
-                                                                                   alphaBlend);
+                                                                                   alphaBlend,
+                                                                                   translateWithEnvironmentFlattening,
+                                                                                   scaleWithEnvironmentFlattening);
             
             return pUnlitBoxRenderable;
         }
@@ -153,6 +160,15 @@ namespace Examples
             return ecefOrientation;
         }
         
+        float CalcFlatteningParam(float phase)
+        {
+            const float threshold = 0.8f;
+            float clippedSine = 1.0f - ((std::max(std::sin(phase), threshold) - threshold) / (1.f - threshold));
+            const float minFlatteningScale = 0.2f;
+            float flatteningParam = Eegeo::Math::Lerp(minFlatteningScale, 1.f, clippedSine);
+            return flatteningParam;
+        }
+        
         const float revsPerMinuteToRadiansPerSecond = Eegeo::Math::kPI*2.f/60.f;
         
     }
@@ -176,6 +192,7 @@ namespace Examples
     , m_basisToEcef(BuildBasisToEcef(config.originLatLong.first, config.originLatLong.second))
     , m_phaseA(0.f)
     , m_phaseB(0.f)
+    , m_environmentFlatteningPhase(0.f)
     {
         const int minDimension = 3;
         const int maxDimension = 10;
@@ -259,26 +276,35 @@ namespace Examples
         
         ExampleMeshRenderable& middleRenderable = *m_renderables[(southToNorthColumns/2)*westToEastRows + westToEastRows/2];
         middleRenderable.SetAlphaBlend(false);
+        middleRenderable.SetEnvironmentFlattenScale(false);
         
         ExampleMeshRenderable& southWestRenderable = *m_renderables.front();
         southWestRenderable.SetDepthTest(false);
         
         ExampleMeshRenderable& southEastRenderable = *m_renderables[southToNorthColumns - 1];
         southEastRenderable.SetColor(Eegeo::Rendering::Colors::MAGENTA);
+        southEastRenderable.SetEnvironmentFlattenTranslate(false);
     }
     
-
     void MeshExample::Update(float dt)
     {
+        m_environmentFlatteningPhase += dt*revsPerMinuteToRadiansPerSecond*m_config.environmentFlatteningCyclesPerMinute;
+        m_environmentFlatteningPhase = std::fmod(m_environmentFlatteningPhase, Eegeo::Math::kPI*2);
+        
         m_phaseA += dt*revsPerMinuteToRadiansPerSecond*m_config.revsPerMinuteA;
         m_phaseA = std::fmod(m_phaseA, Eegeo::Math::kPI*2);
-
+        
         m_phaseB += dt*revsPerMinuteToRadiansPerSecond*m_config.revsPerMinuteB;
         m_phaseB = std::fmod(m_phaseB, Eegeo::Math::kPI*2);
-
         
-        m_renderables.front()->SetOrientationEcef(MakeEcefOrientation(m_phaseA, m_basisToEcef));
-        m_renderables.back()->SetOrientationEcef(MakeEcefOrientation(m_phaseB, m_basisToEcef));
+        float flatteningParam = CalcFlatteningParam(m_environmentFlatteningPhase);
+        m_environmentFlatteningService.SetCurrentScale(flatteningParam);
+
+        ExampleMeshRenderable& southWestRenderable = *m_renderables.front();
+        southWestRenderable.SetOrientationEcef(MakeEcefOrientation(m_phaseA, m_basisToEcef));
+        
+        ExampleMeshRenderable& northEastRenderable = *m_renderables.back();
+        northEastRenderable.SetOrientationEcef(MakeEcefOrientation(m_phaseB, m_basisToEcef));
     }
     
     
@@ -291,11 +317,18 @@ namespace Examples
     void MeshExample::EnqueueRenderables(const Eegeo::Rendering::RenderContext& renderContext, Eegeo::Rendering::RenderQueue& renderQueue)
     {
         const float environmentFlatteningScale = m_environmentFlatteningService.GetCurrentScale();
+        const Eegeo::Camera::RenderCamera& renderCamera = renderContext.GetRenderCamera();
+        
+        const Eegeo::m44& viewProjection = renderCamera.GetViewProjectionMatrix();
+        const Eegeo::dv3& ecefCameraPosition = renderCamera.GetEcefLocation();
         
         for (ExampleMeshRenderableVector::const_iterator iter = m_renderables.begin(); iter != m_renderables.end(); ++iter)
         {
             ExampleMeshRenderable& renderable = **iter;
-            renderable.UpdateMVP(renderContext, environmentFlatteningScale);
+            
+            const Eegeo::m44& mvp = renderable.CalcModelViewProjection(ecefCameraPosition, viewProjection, environmentFlatteningScale);
+            renderable.SetModelViewProjection(mvp);
+            
             renderQueue.EnqueueRenderable(renderable);
         }
     }

@@ -72,5 +72,6 @@ namespace Examples
         
         float m_phaseA;
         float m_phaseB;
+        float m_environmentFlatteningPhase;
     };
 }

@@ -19,6 +19,8 @@ namespace Examples
         float revsPerMinuteA;
         float revsPerMinuteB;
         
+        float environmentFlatteningCyclesPerMinute;
+        
         MeshExampleConfig()
         : originLatLong(std::make_pair(0, 0))
         , altitude(0.f)
@@ -27,8 +29,9 @@ namespace Examples
         , meshColumns(0)
         , boxWidth(0.f)
         , boxHeight(0.f)
-        , revsPerMinuteA(0)
-        , revsPerMinuteB(0)
+        , revsPerMinuteA(0.f)
+        , revsPerMinuteB(0.f)
+        , environmentFlatteningCyclesPerMinute(0.f)
         {
             
         }

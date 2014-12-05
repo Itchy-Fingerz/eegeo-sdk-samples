@@ -32,6 +32,7 @@ namespace Examples
         config.boxHeight = 30.f;
         config.revsPerMinuteA = 29.f;
         config.revsPerMinuteB = -17.f;
+        config.environmentFlatteningCyclesPerMinute = 4.f;
         
         return new Examples::MeshExample(m_globeCameraController, renderingModule, platformAbstractionModule.GetTextureFileLoader(), mapModule.GetEnvironmentFlatteningService(), config);
 
