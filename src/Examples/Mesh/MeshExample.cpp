@@ -28,6 +28,9 @@
 #include "CameraHelpers.h"
 #include "RenderContext.h"
 #include "RenderCamera.h"
+#include "IWebLoadRequestFactory.h"
+#include "IWebLoadRequest.h"
+
 
 
 #include <algorithm>
@@ -111,7 +114,7 @@ namespace Examples
             vertexBindingPool.GetVertexBinding(mesh.GetVertexLayout(), material.GetShader().GetVertexAttributes());
             
             // Create a WorldMeshRenderable, allowing the mesh to be inserted in render queue and drawn.
-            const Eegeo::Rendering::LayerIds::Values renderLayer = Eegeo::Rendering::LayerIds::BeforeWorldTranslucency;
+            const Eegeo::Rendering::LayerIds::Values renderLayer = Eegeo::Rendering::LayerIds::AfterWorld;
             const bool depthTest = true;
             const bool alphaBlend = true;
             const bool translateWithEnvironmentFlattening = true;
@@ -178,21 +181,27 @@ namespace Examples
                                        Eegeo::Modules::Core::RenderingModule& renderingModule,
                                        Eegeo::Helpers::ITextureFileLoader& textureFileLoader,
                                        Eegeo::Rendering::EnvironmentFlatteningService& environmentFlatteningService,
+                                       Eegeo::Web::IWebLoadRequestFactory& webRequestFactory,
                                        const MeshExampleConfig& config)
     : m_cameraController(cameraController)
     , m_renderingModule(renderingModule)
     , m_textureFileLoader(textureFileLoader)
     , m_environmentFlatteningService(environmentFlatteningService)
+    , m_webRequestFactory(webRequestFactory)
     , m_config(config)
     , m_globeCameraStateRestorer(cameraController)
+    , m_webLoadCallback(this, &MeshExample::OnWebLoadCompleted)
     , m_pPositionUvVertexLayout(NULL)
     , m_pShader(NULL)
     , m_pMaterial(NULL)
+    , m_pAsyncTextureMaterial(NULL)
     , m_pUnlitBoxMesh(NULL)
     , m_basisToEcef(BuildBasisToEcef(config.originLatLong.first, config.originLatLong.second))
     , m_phaseA(0.f)
     , m_phaseB(0.f)
     , m_environmentFlatteningPhase(0.f)
+    , m_timer(0.f)
+    , m_madeTextureRequest(false)
     {
         const int minDimension = 3;
         const int maxDimension = 10;
@@ -203,6 +212,9 @@ namespace Examples
         m_textureInfo.textureId = 0;
         m_textureInfo.width = 0;
         m_textureInfo.height = 0;
+        m_asyncTextureInfo.textureId = 0;
+        m_asyncTextureInfo.width = 0;
+        m_asyncTextureInfo.height = 0;
         
         m_pPositionUvVertexLayout = CreatePositionUvVertexLayout();
         
@@ -219,14 +231,22 @@ namespace Examples
         
         delete m_pPositionUvVertexLayout;
         delete m_pMaterial;
+        delete m_pAsyncTextureMaterial;
         delete m_pShader;
         delete m_pUnlitBoxMesh;
         
         std::for_each(m_renderables.begin(), m_renderables.end(), DeleteRenderable);
         m_renderables.clear();
         
-        Eegeo_GL(glDeleteTextures(1, &m_textureInfo.textureId));
-        m_textureInfo.textureId = 0;
+        if (m_textureInfo.textureId != 0)
+        {
+            Eegeo_GL(glDeleteTextures(1, &m_textureInfo.textureId));
+        }
+
+        if (m_asyncTextureInfo.textureId != 0)
+        {
+            Eegeo_GL(glDeleteTextures(1, &m_asyncTextureInfo.textureId));
+        }
     }
     
     void MeshExample::Start()
@@ -278,8 +298,8 @@ namespace Examples
         middleRenderable.SetAlphaBlend(false);
         middleRenderable.SetEnvironmentFlattenScale(false);
         
-        ExampleMeshRenderable& southWestRenderable = *m_renderables.front();
-        southWestRenderable.SetDepthTest(false);
+        ExampleMeshRenderable& northWestRenderable = *m_renderables[(westToEastRows - 1)*southToNorthColumns];
+        northWestRenderable.SetDepthTest(false);
         
         ExampleMeshRenderable& southEastRenderable = *m_renderables[southToNorthColumns - 1];
         southEastRenderable.SetColor(Eegeo::Rendering::Colors::MAGENTA);
@@ -305,6 +325,17 @@ namespace Examples
         
         ExampleMeshRenderable& northEastRenderable = *m_renderables.back();
         northEastRenderable.SetOrientationEcef(MakeEcefOrientation(m_phaseB, m_basisToEcef));
+        
+        if (!m_madeTextureRequest)
+        {
+            m_timer += dt;
+            if (m_timer > m_config.secondsDelayBeforeTextureWebRequest)
+            {
+                Eegeo::Web::IWebLoadRequest* webLoadRequest = m_webRequestFactory.CreateGet(m_config.asyncTextureUrl, m_webLoadCallback, NULL);
+                webLoadRequest->Load();
+                m_madeTextureRequest = true;
+            }
+        }
     }
     
     
@@ -332,4 +363,36 @@ namespace Examples
             renderQueue.EnqueueRenderable(renderable);
         }
     }
+    
+    void MeshExample::OnWebLoadCompleted(Eegeo::Web::IWebLoadRequest& webLoadRequest)
+    {
+        if (!webLoadRequest.IsSucceeded())
+        {
+            Eegeo_TTY("Failed to fetch texture %s", webLoadRequest.GetUrl().c_str());
+            return;
+        }
+        
+        const bool generateMipmaps = true;
+        std::string filenameExtension = webLoadRequest.GetUrl().substr(webLoadRequest.GetUrl().find_last_of("."));
+        
+        bool success = m_textureFileLoader.LoadFromBuffer(m_asyncTextureInfo, filenameExtension, webLoadRequest.GetResourceData().data(), webLoadRequest.GetResourceData().size(), generateMipmaps);
+        if (!success)
+        {
+            Eegeo_TTY("Failed to load texture %s", webLoadRequest.GetUrl().c_str());
+            return;
+        }
+    
+        Eegeo_ASSERT(m_pAsyncTextureMaterial == NULL);
+        m_pAsyncTextureMaterial = new (ExampleMeshUnlitTexturedMaterial)(
+                                                             m_renderingModule.GetMaterialIdGenerator().GetNextId(),
+                                                             "MeshExampleAsyncMat",
+                                                             *m_pShader,
+                                                             m_asyncTextureInfo.textureId
+                                                             );
+        
+        ExampleMeshRenderable& southWestRenderable = *m_renderables.front();
+        southWestRenderable.SetMaterial(m_pAsyncTextureMaterial, m_renderingModule.GetVertexBindingPool());
+
+    }
+
 }

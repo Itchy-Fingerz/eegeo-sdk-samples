@@ -7,6 +7,7 @@ namespace Examples
     struct MeshExampleConfig
     {
         std::string textureFilename;
+        std::string asyncTextureUrl;
         std::pair<double, double> originLatLong;
         float altitude;
         float spacing;
@@ -20,6 +21,7 @@ namespace Examples
         float revsPerMinuteB;
         
         float environmentFlatteningCyclesPerMinute;
+        float secondsDelayBeforeTextureWebRequest;
         
         MeshExampleConfig()
         : originLatLong(std::make_pair(0, 0))
@@ -32,6 +34,7 @@ namespace Examples
         , revsPerMinuteA(0.f)
         , revsPerMinuteB(0.f)
         , environmentFlatteningCyclesPerMinute(0.f)
+        , secondsDelayBeforeTextureWebRequest(0.f)
         {
             
         }

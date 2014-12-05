@@ -10,6 +10,9 @@
 #include "RenderToTextureExampleIncludes.h"
 #include "Modules.h"
 #include "Helpers.h"
+#include "Web.h"
+#include "WebLoadRequestCompletionCallback.h"
+
 
 #include <vector>
 
@@ -29,6 +32,7 @@ namespace Examples
                          Eegeo::Modules::Core::RenderingModule& renderingModule,
                          Eegeo::Helpers::ITextureFileLoader& textureFileLoader,
                          Eegeo::Rendering::EnvironmentFlatteningService& environmentFlatteningService,
+                         Eegeo::Web::IWebLoadRequestFactory& webRequestFactory,
                          const MeshExampleConfig& config);
         
         virtual ~MeshExample();
@@ -54,18 +58,26 @@ namespace Examples
         void EnqueueRenderables(const Eegeo::Rendering::RenderContext& renderContext, Eegeo::Rendering::RenderQueue& renderQueue);
         
     private:
+        void OnWebLoadCompleted(Eegeo::Web::IWebLoadRequest& webLoadRequest);
+    
         Eegeo::Camera::GlobeCamera::GlobeCameraController& m_cameraController;
         Eegeo::Modules::Core::RenderingModule& m_renderingModule;
         Eegeo::Helpers::ITextureFileLoader& m_textureFileLoader;
         Eegeo::Rendering::EnvironmentFlatteningService& m_environmentFlatteningService;
+        Eegeo::Web::IWebLoadRequestFactory& m_webRequestFactory;
         MeshExampleConfig m_config;
+        
+        Eegeo::Web::TWebLoadRequestCompletionCallback<MeshExample> m_webLoadCallback;
         
         GlobeCameraStateRestorer m_globeCameraStateRestorer;
         
         Eegeo::Helpers::GLHelpers::TextureInfo m_textureInfo;
+        Eegeo::Helpers::GLHelpers::TextureInfo m_asyncTextureInfo;
+        
         Eegeo::Rendering::VertexLayouts::VertexLayout* m_pPositionUvVertexLayout;
         Eegeo::Rendering::Shaders::TexturedUniformColoredShader* m_pShader;
         ExampleMeshUnlitTexturedMaterial* m_pMaterial;
+        ExampleMeshUnlitTexturedMaterial* m_pAsyncTextureMaterial;
         Eegeo::Rendering::Mesh* m_pUnlitBoxMesh;
         ExampleMeshRenderableVector m_renderables;
         Eegeo::m33 m_basisToEcef;
@@ -73,5 +85,7 @@ namespace Examples
         float m_phaseA;
         float m_phaseB;
         float m_environmentFlatteningPhase;
+        float m_timer;
+        bool m_madeTextureRequest;
     };
 }

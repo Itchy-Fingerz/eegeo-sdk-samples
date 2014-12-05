@@ -2,8 +2,9 @@
 
 #include "MeshExampleFactory.h"
 #include "MeshExample.h"
-
+#include "CoreModule.h"
 #include "RenderingModule.h"
+
 
 namespace Examples
 {
@@ -23,18 +24,25 @@ namespace Examples
         
         MeshExampleConfig config;
         config.textureFilename = "mesh_example/quadrants.png";
-        config.originLatLong = std::make_pair(37.790, -122.404);
+        config.asyncTextureUrl = "http://cdn1.eegeo.com/mobile-sdk-harness-data/eegeo-tile.png";
+        config.originLatLong = std::make_pair(37.785, -122.404);
         config.spacing = 0.002f;
-        config.altitude = 100.f;
+        config.altitude = 150.f;
         config.meshRows = 5;
         config.meshColumns = 3;
-        config.boxWidth = 50.f;
-        config.boxHeight = 30.f;
+        config.boxWidth = 75.f;
+        config.boxHeight = 50.f;
         config.revsPerMinuteA = 29.f;
         config.revsPerMinuteB = -17.f;
         config.environmentFlatteningCyclesPerMinute = 4.f;
+        config.secondsDelayBeforeTextureWebRequest = 5.f;
         
-        return new Examples::MeshExample(m_globeCameraController, renderingModule, platformAbstractionModule.GetTextureFileLoader(), mapModule.GetEnvironmentFlatteningService(), config);
+        return new Examples::MeshExample(m_globeCameraController,
+                                         renderingModule,
+                                         platformAbstractionModule.GetTextureFileLoader(),
+                                         mapModule.GetEnvironmentFlatteningService(),
+                                         platformAbstractionModule.GetWebLoadRequestFactory(),
+                                         config);
 
     }
     
