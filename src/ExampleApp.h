@@ -42,9 +42,21 @@ public:
 
 	void OnResume();
 
-	void Update (float dt);
+	void Update (float dt, float headTansform[]);
 
-	void Draw (float dt);
+	void Draw (float dt, float headTansform[]);
+
+	void DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld);
+	void DrawRightEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld);
+
+    void DrawLoadingScreen ();
+
+	void UpdateNightTParam(float dt);
+	void ToggleNight();
+	void UpdateFogging();
+
+	void UpdateCardboardProfile(float cardboardProfile[]);
+	void MagnetTriggered();
     
     void NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties);
     

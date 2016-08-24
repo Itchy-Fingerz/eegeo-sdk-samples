@@ -204,7 +204,7 @@ void ExampleApp::OnResume()
 	eegeoWorld.OnResume();
 }
 
-void ExampleApp::Update (float dt)
+void ExampleApp::Update (float dt, float headTansform[])
 {
 	Eegeo::EegeoWorld& eegeoWorld = World();
     
@@ -232,28 +232,42 @@ void ExampleApp::Update (float dt)
     UpdateLoadingScreen(dt);
 }
 
-void ExampleApp::Draw (float dt)
+void ExampleApp::Draw (float dt, float headTansform[])
 {
     m_pExampleController->PreWorldDraw();
     
     Eegeo::EegeoWorld& eegeoWorld = World();
     
     Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
-    
+
     Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
                                               cameraState.InterestPointEcef(),
                                               cameraState.ViewMatrix(),
                                               cameraState.ProjectionMatrix(),
                                               m_screenPropertiesProvider.GetScreenProperties());
-    
+
     eegeoWorld.Draw(drawParameters);
-    
+
     m_pExampleController->Draw();
-    
+
     if (m_pLoadingScreen != NULL)
     {
         m_pLoadingScreen->Draw();
     }
+}
+
+void ExampleApp::UpdateCardboardProfile(float cardboardProfile[])
+{
+    //m_pExampleController->UpdateCardboardProfile(cardboardProfile);
+    //m_pVRDistortion->UpdateCardboardProfile(cardboardProfile);
+}
+
+void ExampleApp::MagnetTriggered(){
+    /*const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
+    Eegeo::v2 dim = Eegeo::v2(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
+    Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(dim.x,dim.y);
+    m_pUIInteractionController->Event_ScreenInteractionClick(center);
+    */
 }
 
 void ExampleApp::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties)

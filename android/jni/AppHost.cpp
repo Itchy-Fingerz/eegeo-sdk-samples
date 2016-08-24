@@ -221,15 +221,24 @@ void AppHost::HandleTouchInputEvent(const Eegeo::Android::Input::TouchInputEvent
 	m_pInputProcessor->HandleInput(event);
 }
 
-void AppHost::Update(float dt)
+void AppHost::UpdateCardboardProfile(float cardboardProfile[])
 {
-	m_pInputProcessor->Update(dt);
-	m_pApp->Update(dt);
+    m_pApp->UpdateCardboardProfile(cardboardProfile);
 }
 
-void AppHost::Draw(float dt)
+void AppHost::MagnetTriggered(){
+    m_pApp->MagnetTriggered();
+}
+
+void AppHost::Update(float dt, float headTansform[])
 {
-	m_pApp->Draw(dt);
+	m_pInputProcessor->Update(dt);
+	m_pApp->Update(dt, headTansform);
+}
+
+void AppHost::Draw(float dt, float headTansform[])
+{
+	m_pApp->Draw(dt, headTansform);
 }
 
 void AppHost::ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screenProperties)
