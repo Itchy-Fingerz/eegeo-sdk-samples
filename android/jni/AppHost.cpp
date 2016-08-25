@@ -150,7 +150,7 @@ AppHost::AppHost(
 
 	m_pInputProcessor = new Eegeo::Android::Input::AndroidInputProcessor(&m_inputHandler, screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
 
-	ConfigureExamples(screenProperties);
+	ConfigureExamples(screenProperties, config.PerformanceConfig.DeviceSpecification);
 
 	m_pAppInputDelegate = new AppInputDelegate(*m_pApp);
 	m_inputHandler.AddDelegateInputHandler(m_pAppInputDelegate);
@@ -241,11 +241,13 @@ void AppHost::Draw(float dt, float headTansform[])
 	m_pApp->Draw(dt, headTansform);
 }
 
-void AppHost::ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screenProperties)
+void AppHost::ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screenProperties, Eegeo::Config::DeviceSpec deviceSpecs)
 {
 	m_pAndroidExampleControllerView = new Examples::AndroidExampleControllerView(m_nativeState);
 
-	m_pApp = new ExampleApp(m_pWorld, *m_pAndroidExampleControllerView, screenProperties, *m_pCollisionVisualizationModule, *m_pBuildingFootprintsModule);
+	m_pHeadTracker = new Examples::AndroidVRHeadTracker(m_nativeState);
+
+	m_pApp = new ExampleApp(m_pWorld, deviceSpecs, *m_pAndroidExampleControllerView, *m_pHeadTracker, screenProperties, *m_pCollisionVisualizationModule, *m_pBuildingFootprintsModule);
 
 	RegisterAndroidSpecificExamples();
 
@@ -305,7 +307,7 @@ void AppHost::DestroyExamples()
 {
 	delete m_pAndroidRouteMatchingExampleViewFactory;
 	delete m_pAndroidRouteSimulationExampleViewFactory;
-
+	delete m_pHeadTracker;
 	delete m_pAndroidExampleControllerView;
 }
 

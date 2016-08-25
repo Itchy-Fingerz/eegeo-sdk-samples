@@ -35,6 +35,7 @@
 #include "AndroidRouteMatchingExampleViewFactory.h"
 #include "AndroidRouteSimulationExampleViewFactory.h"
 #include "ExampleCameraJumpController.h"
+#include "AndroidVRHeadTracker.h"
 
 class AppHost : protected Eegeo::NonCopyable
 {
@@ -88,6 +89,7 @@ private:
 
 	ExampleApp* m_pApp;
 	Examples::AndroidExampleControllerView* m_pAndroidExampleControllerView;
+	Examples::AndroidVRHeadTracker* m_pHeadTracker;
 	Examples::AndroidRouteMatchingExampleViewFactory* m_pAndroidRouteMatchingExampleViewFactory;
 	Examples::AndroidRouteSimulationExampleViewFactory* m_pAndroidRouteSimulationExampleViewFactory;
 
@@ -95,7 +97,7 @@ private:
 
 	Eegeo::Android::AndroidPlatformAbstractionModule* m_pAndroidPlatformAbstractionModule;
 
-	void ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screenProperties);
+	void ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screenProperties, Eegeo::Config::DeviceSpec deviceSpecs);
 	void DestroyExamples();
 	void RegisterAndroidSpecificExamples();
 };

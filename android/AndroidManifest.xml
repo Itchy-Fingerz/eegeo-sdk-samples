@@ -19,6 +19,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application android:label="EegeoDroid" android:theme="@android:style/Theme.NoTitleBar">
        
@@ -26,6 +28,7 @@
                   android:label="EegeoMobileSdkHarness"
                   android:configChanges="orientation|keyboardHidden|screenSize"
               	  android:launchMode="singleInstance"
+              	  android:screenOrientation="landscape"
               	  android:hardwareAccelerated="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

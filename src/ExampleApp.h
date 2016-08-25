@@ -3,12 +3,16 @@
 #ifndef __ExampleApp__ExampleApp__
 #define __ExampleApp__ExampleApp__
 
-#include "GlobeCamera.h"
+#include "DefaultCameraControllerFactory.h"
 #include "EegeoWorld.h"
 #include "ExampleController.h"
-#include "ScreenProperties.h"
-#include "DefaultCameraControllerFactory.h"
+#include "GlobeCamera.h"
+#include "Modules/SkyboxModule/SkyboxModule.h"
+#include "Modules/UI/UIGaze/UIGazeView.h"
+#include "Modules/UI/UIQuad/IUIQuadFactory.h"
+#include "Modules/VRDistortionModule/VRDistortionModule.h"
 #include "Modules.h"
+#include "ScreenProperties.h"
 
 
 class ExampleApp : private Eegeo::NonCopyable
@@ -21,6 +25,24 @@ private:
 	Examples::ExampleController* m_pExampleController;
     Examples::ScreenPropertiesProvider m_screenPropertiesProvider;
     
+    Eegeo::Streaming::CameraFrustumStreamingVolume* m_pStreamingVolume;
+
+    Eegeo::VR::Distortion::VRDistortionModule* m_pVRDistortion;
+    Eegeo::Skybox::SkyboxModule *m_pVRSkybox;
+    Eegeo::UIGaze::UIGazeView* m_pUIGazeView;
+    Eegeo::UI::IUIQuadFactory* m_pQuadFactory;
+
+    bool m_night;
+    float m_foggingFar;
+    float m_nightTParam;
+
+    int m_lastMenuItemSelected;
+    int m_worldMenuItemSelected;
+
+    Eegeo::v3 m_currentClearColor;
+    Eegeo::v3 m_startClearColor;
+    Eegeo::v3 m_destClearColor;
+
 
 	Eegeo::EegeoWorld& World()
 	{
@@ -31,7 +53,9 @@ private:
 
 public:
 	ExampleApp(Eegeo::EegeoWorld* pWorld,
+			   Eegeo::Config::DeviceSpec deviceSpecs,
 	           Examples::IExampleControllerView& view,
+			   Examples::IVRHeadTracker& headTracker,
                const Eegeo::Rendering::ScreenProperties& screenProperties,
                Eegeo::Modules::CollisionVisualizationModule& collisionVisualizationModule,
                Eegeo::Modules::BuildingFootprintsModule& buildingFootprintsModule);

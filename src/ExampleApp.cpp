@@ -13,6 +13,10 @@
 // Modules
 #include "MapModule.h"
 #include "TerrainModelModule.h"
+#include "CameraFrustumStreamingVolume.h"
+#include "LodRefinementConfig.h"
+#include "QuadTreeCube.h"
+#include "StreamingVolumeController.h"
 
 //example factories
 #include "BuildingHighlightExampleFactory.h"
@@ -53,6 +57,10 @@
 #include "BuildingSelectionExampleFactory.h"
 #include "RemoveMapLayerExampleFactory.h"
 #include "BillboardedSpriteExampleFactory.h"
+#include "VRCameraSplineExampleFactory.h"
+
+#include "Modules/VRDistortionModule/VRCardboardDeviceProfile.h"
+#include <android/log.h>
 
 namespace
 {
@@ -88,15 +96,23 @@ namespace
 
 
 ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
+					   Eegeo::Config::DeviceSpec deviceSpecs,
                        Examples::IExampleControllerView& view,
+					   Examples::IVRHeadTracker& headTracker,
                        const Eegeo::Rendering::ScreenProperties& screenProperties,
                        Eegeo::Modules::CollisionVisualizationModule& collisionVisualizationModule,
                        Eegeo::Modules::BuildingFootprintsModule& buildingFootprintsModule)
 	: m_pCameraControllerFactory(NULL)
 	, m_pCameraTouchController(NULL)
 	, m_pWorld(pWorld)
+	, m_nightTParam(0.0f)
+	, m_night(false)
+	, m_foggingFar(4000)
     , m_pLoadingScreen(NULL)
 	, m_pExampleController(NULL)
+	, m_currentClearColor(135.f/255.0f, 206.f/255.0f, 235.f/255.0f)
+    , m_startClearColor(0.f/255.f,24.f/255.f,72.f/255.f)
+    , m_destClearColor(135.f/255.0f, 206.f/255.0f, 235.f/255.0f)
     , m_screenPropertiesProvider(screenProperties)
 {
 	Eegeo::EegeoWorld& eegeoWorld = *pWorld;
@@ -118,6 +134,14 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
     const float cameraControllerOrientationDegrees = 0.0f;
     const float cameraControllerDistanceFromInterestPointMeters = 1781.0f;
     
+    m_pStreamingVolume = Eegeo_NEW(Eegeo::Streaming::CameraFrustumStreamingVolume)(mapModule.GetResourceCeilingProvider(),
+                                                                                       Eegeo::Config::LodRefinementConfig::GetLodRefinementAltitudesForDeviceSpec(deviceSpecs),
+                                                                                       Eegeo::Streaming::QuadTreeCube::MAX_DEPTH_TO_VISIT,
+                                                                                       mapModule.GetEnvironmentFlatteningService());
+
+    m_pStreamingVolume->setDeepestLevelForAltitudeLodRefinement(11);
+    m_pStreamingVolume->SetForceMaximumRefinement(true);
+
     m_pCameraControllerFactory = new Examples::DefaultCameraControllerFactory(
                                                                     terrainModelModule,
                                                                     mapModule,
@@ -137,6 +161,24 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
                                                            view,
                                                            *m_pCameraControllerFactory,
                                                            *m_pCameraTouchController);
+
+    Eegeo::Modules::Core::RenderingModule& renderingModule = m_pWorld->GetRenderingModule();
+    m_pVRDistortion = Eegeo_NEW(Eegeo::VR::Distortion::VRDistortionModule)(m_screenPropertiesProvider.GetScreenProperties(),
+                                                renderingModule.GetVertexLayoutPool(),
+                                                renderingModule.GetVertexBindingPool(),
+                                                renderingModule.GetShaderIdGenerator(),
+                                                renderingModule.GetMaterialIdGenerator(),
+                                                renderingModule.GetRenderableFilters(),
+                                             renderingModule.GetGlBufferPool());
+    m_pVRDistortion->Initialize();
+
+    m_pVRSkybox = Eegeo_NEW(Eegeo::Skybox::SkyboxModule)(renderingModule,
+                                                                      renderingModule.GetGlBufferPool(),
+                                                                      renderingModule.GetVertexBindingPool(),
+                                                                      renderingModule.GetVertexLayoutPool(),
+                                                                      renderingModule.GetRenderableFilters()
+                                                                      );
+    m_pVRSkybox->Start();
 
 	//register all generic examples
     m_pExampleController->RegisterCameraExample<Examples::BillboardedSpriteExampleFactory>();
@@ -183,6 +225,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	m_pExampleController->RegisterCameraExample<Examples::TrafficCongestionExampleFactory>();
 	m_pExampleController->RegisterCameraExample<Examples::WebRequestExampleFactory>();
     m_pExampleController->RegisterCameraControllerScreenPropertiesProviderExample<Examples::RenderToTextureExampleFactory>(m_screenPropertiesProvider);
+    m_pExampleController->RegisterScreenPropertiesProviderVRExample<Examples::VRCameraSplineExampleFactory>(m_screenPropertiesProvider, headTracker);
 }
 
 ExampleApp::~ExampleApp()
@@ -190,6 +233,14 @@ ExampleApp::~ExampleApp()
 	delete m_pCameraTouchController;
     delete m_pLoadingScreen;
     delete m_pExampleController;
+
+    Eegeo_DELETE m_pQuadFactory;
+    Eegeo_DELETE m_pUIGazeView;
+
+    Eegeo_DELETE m_pVRSkybox;
+    Eegeo_DELETE m_pVRDistortion;
+
+    Eegeo_DELETE m_pStreamingVolume;
 }
 
 void ExampleApp::OnPause()
@@ -206,68 +257,190 @@ void ExampleApp::OnResume()
 
 void ExampleApp::Update (float dt, float headTansform[])
 {
-	Eegeo::EegeoWorld& eegeoWorld = World();
-    
-    m_pCameraTouchController->Update(dt);
 
-	eegeoWorld.EarlyUpdate(dt);
-    
-	m_pExampleController->EarlyUpdate(dt);
-    
-    Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
-    Eegeo::Streaming::IStreamingVolume& streamingVolume(m_pExampleController->GetCurrentStreamingVolume());
-    
-    Eegeo::EegeoUpdateParameters updateParameters(dt,
-                                                  cameraState.LocationEcef(),
-                                                  cameraState.InterestPointEcef(),
-                                                  cameraState.ViewMatrix(),
-                                                  cameraState.ProjectionMatrix(),
-                                                  streamingVolume,
-                                                  m_screenPropertiesProvider.GetScreenProperties());
-    
-	eegeoWorld.Update(updateParameters);
-    
-    m_pExampleController->Update(dt);
-    
-    UpdateLoadingScreen(dt);
+	if(m_pExampleController->GetCurrentExampleName() == "VRCameraSplineExample")
+	{
+		const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
+		Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
+		Eegeo::Camera::RenderCamera& renderCamera = m_pExampleController->GetRenderCamera();
+		Eegeo::EegeoWorld& eegeoWorld(World());
+
+		eegeoWorld.EarlyUpdate(dt);
+
+		if(m_pLoadingScreen==NULL || m_pLoadingScreen->IsDismissed())
+			m_pExampleController->EarlyUpdate(dt);
+
+		std::vector<Eegeo::Geometry::Plane> frustumPlanes(Eegeo::Geometry::Frustum::PLANES_COUNT);
+		BuildFrustumPlanesFromViewProjection(frustumPlanes, renderCamera.GetViewProjectionMatrix());
+		const double d = renderCamera.GetAltitude() * Eegeo::Streaming::StreamingVolumeController::CAMERA_ALTITUDE_TO_FAR_PLANE_DISTANCE_MULTIPLIER;
+		const double cameraFarPlaneD = fmin(fmax(d, Eegeo::Streaming::StreamingVolumeController::MIN_STREAMING_FAR_PLANE_DISTANCE), frustumPlanes[Eegeo::Geometry::Frustum::PLANE_FAR].d);
+		frustumPlanes[Eegeo::Geometry::Frustum::PLANE_FAR].d = static_cast<float>(cameraFarPlaneD);
+
+		//    Workaround: added 100.0f to FOV to load textures for surroundings even when camera is not looking at it to fix interior loading crash.
+		m_pStreamingVolume->updateStreamingVolume(renderCamera.GetEcefLocation(), frustumPlanes, renderCamera.GetFOV());
+		m_pStreamingVolume->updateStreamingVolume(renderCamera.GetEcefLocation(), frustumPlanes, renderCamera.GetFOV()+100.0f);
+		m_pStreamingVolume->ResetVolume(cameraState.InterestPointEcef());
+
+		Eegeo::EegeoUpdateParameters updateParameters(dt,
+		                                                  cameraState.LocationEcef(),
+		                                                  cameraState.InterestPointEcef(),
+		                                                  cameraState.ViewMatrix(),
+		                                                  cameraState.ProjectionMatrix(),
+		                                                  *m_pStreamingVolume,
+		                                                  screenProperties);
+
+		eegeoWorld.Update(updateParameters);
+
+		    if(m_pLoadingScreen==NULL || m_pLoadingScreen->IsDismissed())
+		    {
+
+		        //m_pSplashScreen->Update(dt);
+		        //m_pWorldMenuModule->Update(dt);
+		        //m_pAnimationController->Update(dt);
+		        m_pExampleController->Update(dt);
+
+		        //m_pDeadZoneMenuModule->Update(dt);
+		        //m_pUIInteractionController->Update(dt);
+
+		        Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
+		        //m_pUIInteractionController->Event_ScreenInteractionMoved(center);
+		        //m_pInteriorExplorerModule ->Update(dt);
+		        //m_pWorldMenuLoaderModel->Update(dt);
+		    }
+
+		    UpdateLoadingScreen(dt);
+	}
+	else
+	{
+
+		Eegeo::EegeoWorld& eegeoWorld = World();
+
+		m_pCameraTouchController->Update(dt);
+
+		eegeoWorld.EarlyUpdate(dt);
+
+		m_pExampleController->EarlyUpdate(dt);
+
+		Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
+		Eegeo::Streaming::IStreamingVolume& streamingVolume(m_pExampleController->GetCurrentStreamingVolume());
+
+		Eegeo::EegeoUpdateParameters updateParameters(dt,
+													  cameraState.LocationEcef(),
+													  cameraState.InterestPointEcef(),
+													  cameraState.ViewMatrix(),
+													  cameraState.ProjectionMatrix(),
+													  streamingVolume,
+													  m_screenPropertiesProvider.GetScreenProperties());
+
+		eegeoWorld.Update(updateParameters);
+
+		m_pExampleController->Update(dt);
+
+		UpdateLoadingScreen(dt);
+	}
 }
 
 void ExampleApp::Draw (float dt, float headTansform[])
 {
-    m_pExampleController->PreWorldDraw();
-    
-    Eegeo::EegeoWorld& eegeoWorld = World();
-    
-    Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
+	Eegeo::EegeoWorld& eegeoWorld = World();
 
+	if(m_pExampleController->GetCurrentExampleName() == "VRCameraSplineExample")
+	{
+		    if(eegeoWorld.Validated())
+		    {
+		    	__android_log_write(ANDROID_LOG_ERROR, "fahad", "VRCameraSplineExample: Draw()");
+		        m_pVRDistortion->BeginRendering();
+		        //DrawLeftEye(dt, headTansform, eegeoWorld);
+		        m_pVRDistortion->RegisterRenderable();
+		        DrawRightEye(dt, headTansform, eegeoWorld);
+		        m_pVRDistortion->UnRegisterRenderable();
+		    }
+	}
+	else
+	{
+		m_pExampleController->PreWorldDraw();
+
+		Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
+
+		Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+												  cameraState.InterestPointEcef(),
+												  cameraState.ViewMatrix(),
+												  cameraState.ProjectionMatrix(),
+												  m_screenPropertiesProvider.GetScreenProperties());
+
+		eegeoWorld.Draw(drawParameters);
+
+		m_pExampleController->Draw();
+
+		if (m_pLoadingScreen != NULL)
+		{
+			m_pLoadingScreen->Draw();
+		}
+	}
+}
+
+void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
+	__android_log_write(ANDROID_LOG_ERROR, "fahad", "DrawLeftEye: DrawLeftEye()");
+    m_pExampleController->PreWorldDraw();
+
+    glViewport(0, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
+
+    Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentLeftCameraState(headTansform));
     Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
                                               cameraState.InterestPointEcef(),
                                               cameraState.ViewMatrix(),
                                               cameraState.ProjectionMatrix(),
                                               m_screenPropertiesProvider.GetScreenProperties());
 
+
+    Eegeo::v3 forward(m_pExampleController->GetOrientation().GetRow(2));
+    Eegeo::dv3 position(cameraState.LocationEcef() + (forward*50));
+    //m_pUIGazeView->Update(dt);
+    //m_pUIGazeView->SetEcefPosition(position);
+
     eegeoWorld.Draw(drawParameters);
 
     m_pExampleController->Draw();
 
-    if (m_pLoadingScreen != NULL)
-    {
-        m_pLoadingScreen->Draw();
-    }
+
+}
+
+void ExampleApp::DrawRightEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
+	__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth());
+    m_pExampleController->PreWorldDraw();
+
+    glViewport(m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth(), m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
+
+    Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentRightCameraState(headTansform));
+    Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+                                               cameraState.InterestPointEcef(),
+                                               cameraState.ViewMatrix(),
+                                               cameraState.ProjectionMatrix(),
+                                               m_screenPropertiesProvider.GetScreenProperties());
+
+    Eegeo::v3 forward(m_pExampleController->GetOrientation().GetRow(2));
+    Eegeo::dv3 position(cameraState.LocationEcef() + (forward*50));
+    //m_pUIGazeView->Update(dt);
+    //m_pUIGazeView->SetEcefPosition(position);
+
+    eegeoWorld.Draw(drawParameters);
+
+    m_pExampleController->Draw();
+
 }
 
 void ExampleApp::UpdateCardboardProfile(float cardboardProfile[])
 {
-    //m_pExampleController->UpdateCardboardProfile(cardboardProfile);
-    //m_pVRDistortion->UpdateCardboardProfile(cardboardProfile);
+    m_pExampleController->UpdateCardboardProfile(cardboardProfile);
+    m_pVRDistortion->UpdateCardboardProfile(cardboardProfile);
 }
 
-void ExampleApp::MagnetTriggered(){
-    /*const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
+void ExampleApp::MagnetTriggered()
+{
+    const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
     Eegeo::v2 dim = Eegeo::v2(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
     Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(dim.x,dim.y);
-    m_pUIInteractionController->Event_ScreenInteractionClick(center);
-    */
+    //m_pUIInteractionController->Event_ScreenInteractionClick(center);
 }
 
 void ExampleApp::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties)
@@ -280,6 +453,7 @@ void ExampleApp::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenPro
     }
     
     m_pExampleController->NotifyScreenPropertiesChanged(screenProperties);
+    m_pVRDistortion->NotifyScreenPropertiesChanged(screenProperties);
 }
 
 void ExampleApp::UpdateLoadingScreen(float dt)
