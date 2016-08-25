@@ -308,7 +308,7 @@ void ExampleApp::Update (float dt, float headTansform[])
 		        //m_pWorldMenuLoaderModel->Update(dt);
 		    }
 
-		    UpdateLoadingScreen(dt);
+		    UpdateNightTParam(dt);
 	}
 	else
 	{
@@ -441,6 +441,18 @@ void ExampleApp::MagnetTriggered()
     Eegeo::v2 dim = Eegeo::v2(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
     Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(dim.x,dim.y);
     //m_pUIInteractionController->Event_ScreenInteractionClick(center);
+}
+
+void ExampleApp::UpdateNightTParam(float dt)
+{
+    m_nightTParam += dt;
+    if(m_nightTParam>1.0f)
+        m_nightTParam = 0.99f;
+
+    m_nightTParam = Eegeo::Math::Clamp01(m_nightTParam);
+    m_currentClearColor = Eegeo::v3::Lerp(m_startClearColor, m_destClearColor, m_nightTParam);
+
+    m_pVRSkybox->UpdateSkyColor(m_currentClearColor);
 }
 
 void ExampleApp::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties)
