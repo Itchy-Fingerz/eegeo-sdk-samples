@@ -17,7 +17,7 @@ namespace Examples
         AndroidSafeNativeThreadAttachment attached(m_nativeState);
         JNIEnv* env = attached.envForThread;
         
-        jmethodID resetTrackerMethod = env->GetMethodID(m_nativeState.activityClass, "ResetTracker", "()V");
+        jmethodID resetTrackerMethod = env->GetMethodID(m_nativeState.activityClass, "resetTracker", "()V");
         env->CallVoidMethod(m_nativeState.activity, resetTrackerMethod);
         
     }

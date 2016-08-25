@@ -291,24 +291,12 @@ void ExampleApp::Update (float dt, float headTansform[])
 
 		eegeoWorld.Update(updateParameters);
 
-		    if(m_pLoadingScreen==NULL || m_pLoadingScreen->IsDismissed())
-		    {
+		if(m_pLoadingScreen==NULL || m_pLoadingScreen->IsDismissed())
+		{
+			m_pExampleController->Update(dt);
+		}
 
-		        //m_pSplashScreen->Update(dt);
-		        //m_pWorldMenuModule->Update(dt);
-		        //m_pAnimationController->Update(dt);
-		        m_pExampleController->Update(dt);
-
-		        //m_pDeadZoneMenuModule->Update(dt);
-		        //m_pUIInteractionController->Update(dt);
-
-		        Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
-		        //m_pUIInteractionController->Event_ScreenInteractionMoved(center);
-		        //m_pInteriorExplorerModule ->Update(dt);
-		        //m_pWorldMenuLoaderModel->Update(dt);
-		    }
-
-		    UpdateNightTParam(dt);
+		UpdateNightTParam(dt);
 	}
 	else
 	{
@@ -350,7 +338,7 @@ void ExampleApp::Draw (float dt, float headTansform[])
 		    {
 		    	__android_log_write(ANDROID_LOG_ERROR, "fahad", "VRCameraSplineExample: Draw()");
 		        m_pVRDistortion->BeginRendering();
-		        //DrawLeftEye(dt, headTansform, eegeoWorld);
+		        DrawLeftEye(dt, headTansform, eegeoWorld);
 		        m_pVRDistortion->RegisterRenderable();
 		        DrawRightEye(dt, headTansform, eegeoWorld);
 		        m_pVRDistortion->UnRegisterRenderable();

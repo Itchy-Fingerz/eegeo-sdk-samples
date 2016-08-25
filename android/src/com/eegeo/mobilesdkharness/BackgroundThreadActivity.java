@@ -104,6 +104,11 @@ public class BackgroundThreadActivity extends MainActivity
 			getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN);
 		
 	}
+	
+	public void resetTracker()
+	{
+		m_headTracker.resetTracker();
+	}
 
 	public void runOnNativeThread(Runnable runnable)
 	{
@@ -284,7 +289,7 @@ public class BackgroundThreadActivity extends MainActivity
 									NativeJniCalls.updateNativeCode(deltaSeconds, smoothHeadTransform);	
 								}else{
 									System.out.println("Fixing NaN");
-									ResetTracker();
+									resetTracker(); 
 								}
 							}
 							else
@@ -348,10 +353,4 @@ public class BackgroundThreadActivity extends MainActivity
 		return cardboardProperties;
 
 	}
-	
-	public void ResetTracker()
-	{
-		m_headTracker.resetTracker();
-	}
-	
 }
