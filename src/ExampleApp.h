@@ -8,9 +8,7 @@
 #include "ExampleController.h"
 #include "GlobeCamera.h"
 #include "Modules/SkyboxModule/SkyboxModule.h"
-#include "Modules/UI/UIGaze/UIGazeView.h"
-#include "Modules/UI/UIQuad/IUIQuadFactory.h"
-#include "Modules/VRDistortionModule/VRDistortionModule.h"
+#include "VRDistortionModule.h"
 #include "Modules.h"
 #include "ScreenProperties.h"
 
@@ -29,11 +27,7 @@ private:
 
     Eegeo::VR::Distortion::VRDistortionModule* m_pVRDistortion;
     Eegeo::Skybox::SkyboxModule *m_pVRSkybox;
-    Eegeo::UIGaze::UIGazeView* m_pUIGazeView;
-    Eegeo::UI::IUIQuadFactory* m_pQuadFactory;
 
-    bool m_night;
-    float m_foggingFar;
     float m_nightTParam;
 
     int m_lastMenuItemSelected;

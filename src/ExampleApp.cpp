@@ -106,8 +106,6 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	, m_pCameraTouchController(NULL)
 	, m_pWorld(pWorld)
 	, m_nightTParam(0.0f)
-	, m_night(false)
-	, m_foggingFar(4000)
     , m_pLoadingScreen(NULL)
 	, m_pExampleController(NULL)
 	, m_currentClearColor(135.f/255.0f, 206.f/255.0f, 235.f/255.0f)
@@ -234,9 +232,6 @@ ExampleApp::~ExampleApp()
     delete m_pLoadingScreen;
     delete m_pExampleController;
 
-    Eegeo_DELETE m_pQuadFactory;
-    Eegeo_DELETE m_pUIGazeView;
-
     Eegeo_DELETE m_pVRSkybox;
     Eegeo_DELETE m_pVRDistortion;
 
@@ -336,7 +331,6 @@ void ExampleApp::Draw (float dt, float headTansform[])
 	{
 		    if(eegeoWorld.Validated())
 		    {
-		    	__android_log_write(ANDROID_LOG_ERROR, "fahad", "VRCameraSplineExample: Draw()");
 		        m_pVRDistortion->BeginRendering();
 		        DrawLeftEye(dt, headTansform, eegeoWorld);
 		        m_pVRDistortion->RegisterRenderable();
@@ -368,8 +362,9 @@ void ExampleApp::Draw (float dt, float headTansform[])
 }
 
 void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
-	__android_log_write(ANDROID_LOG_ERROR, "fahad", "DrawLeftEye: DrawLeftEye()");
-    m_pExampleController->PreWorldDraw();
+	//__android_log_write(ANDROID_LOG_ERROR, "fahad", "DrawLeftEye: DrawLeftEye()");
+	__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.0f);
+	m_pExampleController->PreWorldDraw();
 
     glViewport(0, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
 
@@ -383,8 +378,6 @@ void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld&
 
     Eegeo::v3 forward(m_pExampleController->GetOrientation().GetRow(2));
     Eegeo::dv3 position(cameraState.LocationEcef() + (forward*50));
-    //m_pUIGazeView->Update(dt);
-    //m_pUIGazeView->SetEcefPosition(position);
 
     eegeoWorld.Draw(drawParameters);
 
@@ -394,7 +387,7 @@ void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld&
 }
 
 void ExampleApp::DrawRightEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
-	__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth());
+	//__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth());
     m_pExampleController->PreWorldDraw();
 
     glViewport(m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth(), m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
@@ -408,8 +401,6 @@ void ExampleApp::DrawRightEye (float dt, float headTansform[], Eegeo::EegeoWorld
 
     Eegeo::v3 forward(m_pExampleController->GetOrientation().GetRow(2));
     Eegeo::dv3 position(cameraState.LocationEcef() + (forward*50));
-    //m_pUIGazeView->Update(dt);
-    //m_pUIGazeView->SetEcefPosition(position);
 
     eegeoWorld.Draw(drawParameters);
 

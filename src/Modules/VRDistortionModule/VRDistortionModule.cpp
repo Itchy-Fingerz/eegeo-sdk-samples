@@ -21,7 +21,6 @@
 #include "VRCardboardDeviceProfile.h"
 
 #include "Logger.h"
-#include <android/log.h>
 
 namespace Eegeo
 {
@@ -213,7 +212,6 @@ namespace Eegeo
                 
                 m_pVRDistortionMaterial->SetIsRenderingEnded(false);
                 m_pRenderTexture->BeginRendering();
-                __android_log_write(ANDROID_LOG_ERROR, "fahad", "VRDistortionModule::BeginRendering()");
             }
             
             void VRDistortionModule::RegisterRenderable()
