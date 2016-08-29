@@ -21,6 +21,30 @@ namespace Examples
         env->CallVoidMethod(m_nativeState.activity, resetTrackerMethod);
         
     }
+
+    void AndroidVRHeadTracker::EnterVRMode()
+        {
+
+            AndroidSafeNativeThreadAttachment attached(m_nativeState);
+            JNIEnv* env = attached.envForThread;
+
+            jmethodID resetTrackerMethod = env->GetMethodID(m_nativeState.activityClass, "enterVRMode", "()V");
+            env->CallVoidMethod(m_nativeState.activity, resetTrackerMethod);
+
+        }
+
+    void AndroidVRHeadTracker::ExitVRMode()
+        {
+
+            AndroidSafeNativeThreadAttachment attached(m_nativeState);
+            JNIEnv* env = attached.envForThread;
+
+            jmethodID resetTrackerMethod = env->GetMethodID(m_nativeState.activityClass, "exitVRMode", "()V");
+            env->CallVoidMethod(m_nativeState.activity, resetTrackerMethod);
+
+        }
+
+
 }
 
 

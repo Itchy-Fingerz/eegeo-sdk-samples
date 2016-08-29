@@ -22,6 +22,7 @@ private:
     Eegeo::Rendering::LoadingScreen* m_pLoadingScreen;
 	Examples::ExampleController* m_pExampleController;
     Examples::ScreenPropertiesProvider m_screenPropertiesProvider;
+    Examples::IVRHeadTracker& m_pHeadTracker;
     
     Eegeo::Streaming::CameraFrustumStreamingVolume* m_pStreamingVolume;
 

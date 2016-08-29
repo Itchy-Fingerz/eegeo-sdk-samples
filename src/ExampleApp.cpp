@@ -105,6 +105,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	: m_pCameraControllerFactory(NULL)
 	, m_pCameraTouchController(NULL)
 	, m_pWorld(pWorld)
+	, m_pHeadTracker(headTracker)
 	, m_nightTParam(0.0f)
     , m_pLoadingScreen(NULL)
 	, m_pExampleController(NULL)
@@ -255,6 +256,7 @@ void ExampleApp::Update (float dt, float headTansform[])
 
 	if(m_pExampleController->GetCurrentExampleName() == "VRCameraSplineExample")
 	{
+		m_pHeadTracker.EnterVRMode();
 		const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
 		Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
 		Eegeo::Camera::RenderCamera& renderCamera = m_pExampleController->GetRenderCamera();
@@ -295,7 +297,7 @@ void ExampleApp::Update (float dt, float headTansform[])
 	}
 	else
 	{
-
+		m_pHeadTracker.ExitVRMode();
 		Eegeo::EegeoWorld& eegeoWorld = World();
 
 		m_pCameraTouchController->Update(dt);
@@ -362,11 +364,9 @@ void ExampleApp::Draw (float dt, float headTansform[])
 }
 
 void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
-	//__android_log_write(ANDROID_LOG_ERROR, "fahad", "DrawLeftEye: DrawLeftEye()");
-	__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.0f);
 	m_pExampleController->PreWorldDraw();
 
-    glViewport(0, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
+    glViewport(0, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.0f, m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
 
     Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentLeftCameraState(headTansform));
     Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
@@ -387,10 +387,9 @@ void ExampleApp::DrawLeftEye (float dt, float headTansform[], Eegeo::EegeoWorld&
 }
 
 void ExampleApp::DrawRightEye (float dt, float headTansform[], Eegeo::EegeoWorld& eegeoWorld){
-	//__android_log_print(ANDROID_LOG_ERROR, "fahad", "Screen Width %f", m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth());
     m_pExampleController->PreWorldDraw();
 
-    glViewport(m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.f, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth(), m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
+    glViewport(m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.0f, 0, m_screenPropertiesProvider.GetScreenProperties().GetScreenWidth()/2.0f, m_screenPropertiesProvider.GetScreenProperties().GetScreenHeight());
 
     Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentRightCameraState(headTansform));
     Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),

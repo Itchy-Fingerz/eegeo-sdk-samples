@@ -10,6 +10,8 @@ namespace Examples
     {
     public:
         virtual void ResetTracker() = 0;
+        virtual void EnterVRMode() = 0;
+        virtual void ExitVRMode() = 0;
     };
 }
 

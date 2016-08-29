@@ -40,7 +40,7 @@ namespace Eegeo
             {
                 m_isRenderingEnded = true;
                 
-                glViewport(0, 0, m_screenProperties.GetScreenWidth()*2.f, m_screenProperties.GetScreenHeight());
+                glViewport(0, 0, m_screenProperties.GetScreenWidth(), m_screenProperties.GetScreenHeight());
                 
                 m_shader.Use(glState);
                 m_renderTexture.EndRendering();

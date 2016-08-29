@@ -134,7 +134,7 @@ namespace Eegeo
             void VRDistortionModule::Initialize()
             {
                 
-                m_pRenderTexture = Eegeo_NEW(Eegeo::Rendering::RenderTexture)(static_cast<u32>(m_screenProperties.GetScreenWidth()) * 2.f,
+                m_pRenderTexture = Eegeo_NEW(Eegeo::Rendering::RenderTexture)(static_cast<u32>(m_screenProperties.GetScreenWidth()),
                                                                               static_cast<u32>(m_screenProperties.GetScreenHeight()),
                                                                               true);
                 
@@ -146,7 +146,7 @@ namespace Eegeo
                                                                              *m_pRenderTexture,
                                                                              m_screenProperties);
                 
-                Eegeo::Rendering::Mesh* pRenderableMesh = CreateUnlitDistortionMesh(m_screenProperties.GetScreenWidth()*2.f, m_screenProperties.GetScreenHeight(), *m_pPositionUvVertexLayout, m_glBufferPool, *m_pCardboardProfile);
+                Eegeo::Rendering::Mesh* pRenderableMesh = CreateUnlitDistortionMesh(m_screenProperties.GetScreenWidth(), m_screenProperties.GetScreenHeight(), *m_pPositionUvVertexLayout, m_glBufferPool, *m_pCardboardProfile);
                 
                 const Eegeo::Rendering::VertexLayouts::VertexLayout& vertexLayout = pRenderableMesh->GetVertexLayout();
                 const Eegeo::Rendering::VertexLayouts::VertexAttribs& vertexAttributes = m_pVRDistortionShader->GetVertexAttributes();

@@ -4,6 +4,7 @@ package com.eegeo.mobilesdkharness;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -108,6 +109,16 @@ public class BackgroundThreadActivity extends MainActivity
 	public void resetTracker()
 	{
 		m_headTracker.resetTracker();
+	}
+	
+	public void enterVRMode()
+	{
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+	}
+	
+	public void exitVRMode()
+	{
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 	}
 
 	public void runOnNativeThread(Runnable runnable)

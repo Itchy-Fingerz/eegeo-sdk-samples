@@ -17,6 +17,8 @@ namespace Examples
         
         AndroidVRHeadTracker(AndroidNativeState& nativeState);
         virtual void ResetTracker() ;
+        virtual void EnterVRMode() ;
+        virtual void ExitVRMode() ;
     };
 }
 
