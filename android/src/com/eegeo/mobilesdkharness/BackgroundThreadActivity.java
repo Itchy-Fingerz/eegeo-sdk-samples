@@ -303,14 +303,22 @@ public class BackgroundThreadActivity extends MainActivity
 							if(m_running && m_headTracker != null)
 							{
 								float[] tempHeadTransform = new float[16];
-								m_headTracker.getLastHeadView(tempHeadTransform, 0);
-								if(!Float.isNaN(tempHeadTransform[0])){
-									smoothHeadTransform = exponentialSmoothing(tempHeadTransform, smoothHeadTransform, deltaSeconds * HEAD_TRANSFORM_SMOOTHING_SPEED);
-									NativeJniCalls.updateNativeCode(deltaSeconds, smoothHeadTransform);	
-								}else{
-									System.out.println("Fixing NaN");
-									resetTracker(); 
+								if(m_isInVRMode)
+								{
+									m_headTracker.getLastHeadView(tempHeadTransform, 0);
+									if(!Float.isNaN(tempHeadTransform[0])){
+										smoothHeadTransform = exponentialSmoothing(tempHeadTransform, smoothHeadTransform, deltaSeconds * HEAD_TRANSFORM_SMOOTHING_SPEED);
+										NativeJniCalls.updateNativeCode(deltaSeconds, smoothHeadTransform);	
+									}else{
+										System.out.println("Fixing NaN");
+										resetTracker(); 
+									}
 								}
+								else
+								{
+									NativeJniCalls.updateNativeCode(deltaSeconds, tempHeadTransform);
+								}
+								
 							}
 							else
 							{

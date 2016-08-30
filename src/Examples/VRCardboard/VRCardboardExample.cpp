@@ -40,7 +40,7 @@ VRCardboardExample::~VRCardboardExample(){
     void VRCardboardExample::Start()
     {
 
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 250);
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 35);
         m_pSplineCameraController->SetStartLatLongAltitude(eyePosLla);
         
     }
