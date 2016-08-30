@@ -1,7 +1,7 @@
 // Copyright eeGeo Ltd (2012-2014), All Rights Reserved
 
-#include "VRCameraSplineExampleFactory.h"
-#include "VRCameraSplineExample.h"
+#include "VRCardboardExampleFactory.h"
+#include "VRCardboardExample.h"
 #include "EegeoWorld.h"
 #include "ResourceCeilingProvider.h"
 #include "DefaultCameraControllerFactory.h"
@@ -10,7 +10,7 @@
 namespace Examples
 {
 
-    VRCameraSplineExampleFactory::VRCameraSplineExampleFactory(Eegeo::EegeoWorld& world,
+	VRCardboardExampleFactory::VRCardboardExampleFactory(Eegeo::EegeoWorld& world,
                                                                DefaultCameraControllerFactory&defaultCameraControllerFactory,
                                                                IVRHeadTracker& headTracker,
                                                                const IScreenPropertiesProvider& screenPropertiesProvider)
@@ -22,21 +22,21 @@ namespace Examples
     
 }
 
-IExample* VRCameraSplineExampleFactory::CreateExample() const
+IExample* VRCardboardExampleFactory::CreateExample() const
 {
     Eegeo::Modules::Map::MapModule& mapModule = m_world.GetMapModule();
     
     const Eegeo::Rendering::ScreenProperties& initialScreenProperties = m_screenPropertiesProvider.GetScreenProperties();
     
-    return new Examples::VRCameraSplineExample(m_world,
+    return new Examples::VRCardboardExample(m_world,
                                                 mapModule.GetResourceCeilingProvider(),
                                                 m_defaultCameraControllerFactory.Create(),
                                                 m_headTracker,
                                                 initialScreenProperties);
 }
 
-std::string VRCameraSplineExampleFactory::ExampleName() const
+std::string VRCardboardExampleFactory::ExampleName() const
 {
-	return Examples::VRCameraSplineExample::GetName();
+	return Examples::VRCardboardExample::GetName();
 }
 }

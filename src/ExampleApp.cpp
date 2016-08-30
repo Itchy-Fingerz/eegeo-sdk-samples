@@ -57,7 +57,7 @@
 #include "BuildingSelectionExampleFactory.h"
 #include "RemoveMapLayerExampleFactory.h"
 #include "BillboardedSpriteExampleFactory.h"
-#include "VRCameraSplineExampleFactory.h"
+#include "VRCardboardExampleFactory.h"
 
 #include "Modules/VRDistortionModule/VRCardboardDeviceProfile.h"
 #include <android/log.h>
@@ -177,7 +177,6 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
                                                                       renderingModule.GetVertexLayoutPool(),
                                                                       renderingModule.GetRenderableFilters()
                                                                       );
-    m_pVRSkybox->Start();
 
 	//register all generic examples
     m_pExampleController->RegisterCameraExample<Examples::BillboardedSpriteExampleFactory>();
@@ -224,7 +223,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	m_pExampleController->RegisterCameraExample<Examples::TrafficCongestionExampleFactory>();
 	m_pExampleController->RegisterCameraExample<Examples::WebRequestExampleFactory>();
     m_pExampleController->RegisterCameraControllerScreenPropertiesProviderExample<Examples::RenderToTextureExampleFactory>(m_screenPropertiesProvider);
-    m_pExampleController->RegisterScreenPropertiesProviderVRExample<Examples::VRCameraSplineExampleFactory>(m_screenPropertiesProvider, headTracker);
+    m_pExampleController->RegisterScreenPropertiesProviderVRExample<Examples::VRCardboardExampleFactory>(m_screenPropertiesProvider, headTracker);
 }
 
 ExampleApp::~ExampleApp()
@@ -254,8 +253,12 @@ void ExampleApp::OnResume()
 void ExampleApp::Update (float dt, float headTansform[])
 {
 
-	if(m_pExampleController->GetCurrentExampleName() == "VRCameraSplineExample")
+	if(m_pExampleController->GetCurrentExampleName() == "VRCardboardExample")
 	{
+		if(!m_pVRSkybox->IsShowing())
+		{
+			m_pVRSkybox->Start();
+		}
 		m_pHeadTracker.EnterVRMode();
 		const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
 		Eegeo::Camera::CameraState cameraState(m_pExampleController->GetCurrentCameraState());
@@ -297,6 +300,10 @@ void ExampleApp::Update (float dt, float headTansform[])
 	}
 	else
 	{
+		if(m_pVRSkybox->IsShowing())
+		{
+			m_pVRSkybox->Stop();
+		}
 		m_pHeadTracker.ExitVRMode();
 		Eegeo::EegeoWorld& eegeoWorld = World();
 
@@ -329,7 +336,7 @@ void ExampleApp::Draw (float dt, float headTansform[])
 {
 	Eegeo::EegeoWorld& eegeoWorld = World();
 
-	if(m_pExampleController->GetCurrentExampleName() == "VRCameraSplineExample")
+	if(m_pExampleController->GetCurrentExampleName() == "VRCardboardExample")
 	{
 		    if(eegeoWorld.Validated())
 		    {
@@ -415,10 +422,7 @@ void ExampleApp::UpdateCardboardProfile(float cardboardProfile[])
 
 void ExampleApp::MagnetTriggered()
 {
-    const Eegeo::Rendering::ScreenProperties& screenProperties = m_screenPropertiesProvider.GetScreenProperties();
-    Eegeo::v2 dim = Eegeo::v2(screenProperties.GetScreenWidth(), screenProperties.GetScreenHeight());
-    Eegeo::v2 center = m_pVRDistortion->GetCardboardProfile().GetScreenMeshCenter(dim.x,dim.y);
-    //m_pUIInteractionController->Event_ScreenInteractionClick(center);
+
 }
 
 void ExampleApp::UpdateNightTParam(float dt)

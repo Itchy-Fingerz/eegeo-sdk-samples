@@ -1,7 +1,7 @@
 // Copyright eeGeo Ltd (2012-2014), All Rights Reserved
 
-#ifndef __ExampleApp__VRCameraSplineExample__
-#define __ExampleApp__VRCameraSplineExample__
+#ifndef __ExampleApp__VRCardboardExample__
+#define __ExampleApp__VRCardboardExample__
 
 #include "VRCameraController.h"
 #include "IExample.h"
@@ -15,9 +15,9 @@
 namespace Examples
 {
 /*!
- *  VRCameraSplineExample demonstrates a camera controller that can animate the camera along a spline
+ *  VRCardboardExample demonstrates a camera controller that can animate the camera along a spline
  */
-class VRCameraSplineExample : public IExample, Eegeo::NonCopyable
+class VRCardboardExample : public IExample, Eegeo::NonCopyable
 {
 private:
 	
@@ -26,22 +26,19 @@ private:
     
     Eegeo::VR::VRCameraController* m_pSplineCameraController;
     
-    Eegeo::Helpers::TCallback0<VRCameraSplineExample> m_onSFSplineSelectedCallback;
-    Eegeo::Helpers::TCallback0<VRCameraSplineExample> m_onNYSplineSelectedCallback;
-    Eegeo::Helpers::TCallback0<VRCameraSplineExample> m_onWestPortSplineSelectedCallback;
 public:
     
-    VRCameraSplineExample(Eegeo::EegeoWorld& eegeoWorld,
+    VRCardboardExample(Eegeo::EegeoWorld& eegeoWorld,
                           Eegeo::Streaming::ResourceCeilingProvider& resourceCeilingProvider,
                           Eegeo::Camera::GlobeCamera::GlobeCameraController* pCameraController,
                           IVRHeadTracker& headTracker,
                           const Eegeo::Rendering::ScreenProperties& initialScreenProperties);
     
-    virtual ~VRCameraSplineExample();
+    virtual ~VRCardboardExample();
     
 	static std::string GetName()
 	{
-		return "VRCameraSplineExample";
+		return "VRCardboardExample";
 	}
 	std::string Name() const
 	{
@@ -96,4 +93,4 @@ public:
 };
 }
 
-#endif /* defined(__ExampleApp__VRCameraSplineExample__) */
+#endif /* defined(__ExampleApp__VRCardboardExample__) */

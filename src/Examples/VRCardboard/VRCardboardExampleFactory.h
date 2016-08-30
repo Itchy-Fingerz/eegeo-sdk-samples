@@ -1,7 +1,7 @@
 // Copyright eeGeo Ltd (2012-2014), All Rights Reserved
 
-#ifndef __ExampleApp__VRCameraSplineExampleFactory__
-#define __ExampleApp__VRCameraSplineExampleFactory__
+#ifndef __ExampleApp__VRCardboardExampleFactory__
+#define __ExampleApp__VRCardboardExampleFactory__
 
 #include "IExampleFactory.h"
 #include "EegeoRootDeclarations.h"
@@ -10,7 +10,7 @@
 
 namespace Examples
 {
-    class VRCameraSplineExampleFactory : public IExampleFactory
+    class VRCardboardExampleFactory : public IExampleFactory
     {
         Eegeo::EegeoWorld& m_world;
         const IScreenPropertiesProvider& m_screenPropertiesProvider;
@@ -18,7 +18,7 @@ namespace Examples
         IVRHeadTracker& m_headTracker;
         
     public:
-        VRCameraSplineExampleFactory( Eegeo::EegeoWorld& world,
+        VRCardboardExampleFactory( Eegeo::EegeoWorld& world,
                                       DefaultCameraControllerFactory& defaultCameraControllerFactory,
                                       IVRHeadTracker& headTracker,
                                       const IScreenPropertiesProvider& screenPropertiesProvider);
@@ -30,4 +30,4 @@ namespace Examples
 }
 
 
-#endif /* defined(__ExampleApp__VRCameraSplineExampleFactory__) */
+#endif /* defined(__ExampleApp__VRCardboardFactory__) */

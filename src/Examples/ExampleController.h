@@ -17,7 +17,7 @@
 #include "ScreenPropertiesProvider.h"
 #include "Types.h"
 #include "UIActionHandler.h"
-#include "VRCameraSpline/IVRHeadTracker.h"
+#include "VRCardboard/IVRHeadTracker.h"
 
 namespace Examples
 {

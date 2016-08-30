@@ -29,16 +29,16 @@ namespace Eegeo
         m_vertexLayoutPool(vertexLayoutPool),
         m_vertexBindingPool(vertexBindingPool),
         m_renderableFilters(renderableFilters),
-        m_pRenderable(NULL)
+        m_pRenderable(NULL),
+		m_isShowing(false)
         {
             m_backgroundColor = Eegeo::v4(0.0f/255.f,24.0f/255.f,72.0f/255.f,1.0f);
         }
         
         SkyboxModule::~SkyboxModule()
         {
-            Eegeo::Rendering::RenderableFilters& platformRenderableFilters = m_renderingModule.GetRenderableFilters();
-            platformRenderableFilters.RemoveRenderableFilter(*this);
-            
+            Stop();
+
             Eegeo_DELETE m_pMaterial;
             Eegeo_DELETE m_pShader;
         }
@@ -65,8 +65,16 @@ namespace Eegeo
                                                                                      vertexBinding
                                                                                      );
             m_renderableFilters.AddRenderableFilter(*this);
+            m_isShowing = true;
         }
         
+        void SkyboxModule::Stop()
+        {
+        	Eegeo::Rendering::RenderableFilters& platformRenderableFilters = m_renderingModule.GetRenderableFilters();
+        	platformRenderableFilters.RemoveRenderableFilter(*this);
+        	m_isShowing = false;
+        }
+
         void SkyboxModule::UpdateSkyColor(Eegeo::v3 color)
         {
             m_backgroundColor.Set(color.GetX(), color.GetY(), color.GetZ(), 1.0f);
@@ -79,12 +87,19 @@ namespace Eegeo
         {}
         
         void SkyboxModule::Suspend()
-        {}
+        {
+
+        }
         
         // IRenderableFilter interface
         void SkyboxModule::EnqueueRenderables(const Eegeo::Rendering::RenderContext& renderContext, Eegeo::Rendering::RenderQueue& renderQueue)
         {
             renderQueue.EnqueueRenderable(m_pRenderable);
+        }
+
+        bool SkyboxModule::IsShowing()
+        {
+        	return m_isShowing;
         }
     }
 }

@@ -25,6 +25,7 @@ namespace Eegeo
             Eegeo::Rendering::Renderables::MeshRenderable* m_pRenderable;
             Eegeo::Rendering::RenderableFilters& m_renderableFilters;
             Eegeo::v4 m_backgroundColor;
+            bool m_isShowing;
             
         public:
             SkyboxModule(Eegeo::Modules::Core::RenderingModule& renderingModule,
@@ -34,10 +35,12 @@ namespace Eegeo
                          Eegeo::Rendering::RenderableFilters& renderableFilters);
             virtual ~SkyboxModule();
             void Start();
+            void Stop();
             void Update(float dt);
             void Draw();
             void Suspend();
             void UpdateSkyColor(Eegeo::v3 color);
+            bool IsShowing();
             
             // IRenderableFilter interface
             void EnqueueRenderables(const Eegeo::Rendering::RenderContext& renderContext, Eegeo::Rendering::RenderQueue& renderQueue);

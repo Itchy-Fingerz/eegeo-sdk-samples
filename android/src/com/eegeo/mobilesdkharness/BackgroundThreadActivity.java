@@ -32,6 +32,7 @@ public class BackgroundThreadActivity extends MainActivity
 	private long m_nativeAppWindowPtr;
 	private ThreadedUpdateRunner m_threadedRunner;
 	private Thread m_updater;
+	private boolean m_isInVRMode;
 	
 	private HeadTracker m_headTracker; 
 	private MagnetSensor m_magnetSensor;
@@ -113,12 +114,20 @@ public class BackgroundThreadActivity extends MainActivity
 	
 	public void enterVRMode()
 	{
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		if(!m_isInVRMode)
+		{
+			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+			m_isInVRMode = true;
+		}
 	}
 	
 	public void exitVRMode()
 	{
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+		if(m_isInVRMode)
+		{
+			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+			m_isInVRMode = false;
+		}
 	}
 
 	public void runOnNativeThread(Runnable runnable)
@@ -291,7 +300,7 @@ public class BackgroundThreadActivity extends MainActivity
 						
 						if(deltaSeconds > m_frameThrottleDelaySeconds)
 						{
-							if(m_running)
+							if(m_running && m_headTracker != null)
 							{
 								float[] tempHeadTransform = new float[16];
 								m_headTracker.getLastHeadView(tempHeadTransform, 0);

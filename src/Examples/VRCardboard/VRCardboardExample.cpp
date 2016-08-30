@@ -1,6 +1,6 @@
 // Copyright eeGeo Ltd (2012-2014), All Rights Reserved
 
-#include "VRCameraSplineExample.h"
+#include "VRCardboardExample.h"
 #include "VectorMath.h"
 #include "LatLongAltitude.h"
 #include "CatmullRomSpline.h"
@@ -19,15 +19,12 @@
 
 namespace Examples
 {
-    VRCameraSplineExample::VRCameraSplineExample(Eegeo::EegeoWorld& eegeoWorld,
+VRCardboardExample::VRCardboardExample(Eegeo::EegeoWorld& eegeoWorld,
                                                  Eegeo::Streaming::ResourceCeilingProvider& resourceCeilingProvider,
                                                  Eegeo::Camera::GlobeCamera::GlobeCameraController* pCameraController,
                                                  IVRHeadTracker& headTracker,
                                                  const Eegeo::Rendering::ScreenProperties& initialScreenProperties)
-    : m_world(eegeoWorld),
-      m_onSFSplineSelectedCallback(this, &VRCameraSplineExample::OnSFSplineSelected),
-      m_onNYSplineSelectedCallback(this, &VRCameraSplineExample::OnNYSplineSelected),
-      m_onWestPortSplineSelectedCallback(this, &VRCameraSplineExample::OnWestPortSplineSelected)
+    : m_world(eegeoWorld)
     {
         NotifyScreenPropertiesChanged(initialScreenProperties);
         Eegeo::m44 projectionMatrix = Eegeo::m44(pCameraController->GetRenderCamera().GetProjectionMatrix());
@@ -36,67 +33,60 @@ namespace Examples
         m_eyeDistance = 0.03f;
     }
     
-    VRCameraSplineExample::~VRCameraSplineExample(){
+VRCardboardExample::~VRCardboardExample(){
 //        delete m_pSplineCameraController;
     }
     
-    void VRCameraSplineExample::Start()
+    void VRCardboardExample::Start()
     {
 
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(56.456160, -2.966101, 250);
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 250);
         m_pSplineCameraController->SetStartLatLongAltitude(eyePosLla);
         
     }
     
-    void VRCameraSplineExample::Suspend()
+    void VRCardboardExample::Suspend()
     {
 
     }
     
-    void VRCameraSplineExample::UpdateCardboardProfile(float cardboardProfile[])
+    void VRCardboardExample::UpdateCardboardProfile(float cardboardProfile[])
     {
         //9th parameter is eye distance in meters.
         m_eyeDistance = cardboardProfile[9]/2.0f;
     }
     
-    void VRCameraSplineExample::EarlyUpdate(float dt)
+    void VRCardboardExample::EarlyUpdate(float dt)
     {
         m_pSplineCameraController->Update(dt);
-        
-            if (m_pSplineCameraController->GetVRCameraPositionSpline().IsInteriorSpline()) {
-                m_pSplineCameraController->SetNearMultiplier(INTERIOR_NEAR_MULTIPLIER);
-            }
-            else {
-                m_pSplineCameraController->SetNearMultiplier(EXTERIOR_NEAR_MULTIPLIER);
-            }
-        
+        m_pSplineCameraController->SetNearMultiplier(EXTERIOR_NEAR_MULTIPLIER);
     }
     
-    void VRCameraSplineExample::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties)
+    void VRCardboardExample::NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties)
     {
     }
     
     
-    const Eegeo::m33& VRCameraSplineExample::getCurrentCameraOrientation()
+    const Eegeo::m33& VRCardboardExample::getCurrentCameraOrientation()
     {
         return m_pSplineCameraController->GetOrientation();
     }
     
-    const Eegeo::m33& VRCameraSplineExample::GetBaseOrientation()
+    const Eegeo::m33& VRCardboardExample::GetBaseOrientation()
     {
         return m_pSplineCameraController->GetCameraOrientation();
     }
     
-    const Eegeo::m33& VRCameraSplineExample::GetHeadTrackerOrientation()
+    const Eegeo::m33& VRCardboardExample::GetHeadTrackerOrientation()
     {
         return m_pSplineCameraController->GetHeadTrackerOrientation();
     }
     
-    Eegeo::Camera::RenderCamera& VRCameraSplineExample::GetRenderCamera(){
+    Eegeo::Camera::RenderCamera& VRCardboardExample::GetRenderCamera(){
         return m_pSplineCameraController->GetCamera();
     }
     
-    Eegeo::Camera::CameraState VRCameraSplineExample::GetCurrentLeftCameraState(float headTansform[]) const
+    Eegeo::Camera::CameraState VRCardboardExample::GetCurrentLeftCameraState(float headTansform[]) const
     {
         
         Eegeo::m33 orientation;
@@ -112,7 +102,7 @@ namespace Examples
         return m_pSplineCameraController->GetCameraState();
     }
     
-    Eegeo::Camera::CameraState VRCameraSplineExample::GetCurrentRightCameraState(float headTansform[]) const
+    Eegeo::Camera::CameraState VRCardboardExample::GetCurrentRightCameraState(float headTansform[]) const
     {
         Eegeo::m33 orientation;
         Eegeo::v3 right = Eegeo::v3(headTansform[0],headTansform[4],headTansform[8]);
@@ -127,23 +117,8 @@ namespace Examples
         return m_pSplineCameraController->GetCameraState();
     }
     
-    Eegeo::Camera::CameraState VRCameraSplineExample::GetCurrentCameraState() const
+    Eegeo::Camera::CameraState VRCardboardExample::GetCurrentCameraState() const
     {
         return m_pSplineCameraController->GetCameraState();
-    }
-    
-    void VRCameraSplineExample::OnWestPortSplineSelected()
-    {
-        m_pSplineCameraController->PlaySpline(4);
-    }
-    
-    void VRCameraSplineExample::OnSFSplineSelected()
-    {
-        m_pSplineCameraController->PlaySpline(2);
-    }
-    
-    void VRCameraSplineExample::OnNYSplineSelected()
-    {
-        m_pSplineCameraController->PlaySpline(9);
     }
 }
