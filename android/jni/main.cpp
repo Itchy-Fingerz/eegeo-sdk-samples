@@ -88,17 +88,17 @@ JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_destroyNat
 
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_pauseNativeCode(JNIEnv* jenv, jobject obj)
 {
-	//g_pAppRunner->Pause();
+	g_pAppRunner->Pause();
 }
 
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_resumeNativeCode(JNIEnv* jenv, jobject obj)
 {
-	//g_pAppRunner->Resume();
+	g_pAppRunner->Resume();
 }
 
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateNativeCode(JNIEnv* jenv, jobject obj, jfloat deltaSeconds)
 {
-	//g_pAppRunner->Update((float)deltaSeconds);
+	g_pAppRunner->Update((float)deltaSeconds);
 }
 
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_setNativeSurface(JNIEnv* jenv, jobject obj, jobject surface)
@@ -115,7 +115,7 @@ JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_setNativeS
 
 		if (g_nativeState.window != NULL)
 		{
-			//g_pAppRunner->ActivateSurface();
+			g_pAppRunner->ActivateSurface();
 		}
 	}
 }

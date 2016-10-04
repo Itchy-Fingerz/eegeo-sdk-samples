@@ -84,6 +84,8 @@ public class BackgroundThreadActivity extends MainActivity
     
     /** Native function to update the renderer. */
     public native void updateRendering(int width, int height);
+    
+    private boolean m_isNativeSurfaceSet;
 
 	static {
 		System.loadLibrary("eegeo-sdk-samples");
@@ -367,6 +369,7 @@ public class BackgroundThreadActivity extends MainActivity
 				if(m_surfaceHolder != null && m_surfaceHolder.getSurface() != null)
 				{
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
+					m_isNativeSurfaceSet = true;
 				}
 			}
 		});
@@ -502,6 +505,7 @@ public class BackgroundThreadActivity extends MainActivity
 				if(m_surfaceHolder != null) 
 				{
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
+					m_isNativeSurfaceSet = true;
 					m_threadedRunner.start();
 				}
 			}
@@ -809,7 +813,10 @@ public class BackgroundThreadActivity extends MainActivity
                 mLastScreenRotation = currentScreenRotation;
             }
         }
-        renderFrame();
+        if(m_isNativeSurfaceSet)
+        {
+        	renderFrame();
+        }
     }
     
 	/** The native render function. */
