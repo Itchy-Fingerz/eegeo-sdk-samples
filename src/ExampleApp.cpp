@@ -272,7 +272,7 @@ void ExampleApp::Update (float dt)
 
 void ExampleApp::Draw (float dt)
 {
-    m_pExampleController->PreWorldDraw();
+    //m_pExampleController->PreWorldDraw();
     
     Eegeo::EegeoWorld& eegeoWorld = World();
     
@@ -284,13 +284,13 @@ void ExampleApp::Draw (float dt)
                                               cameraState.ProjectionMatrix(),
                                               m_screenPropertiesProvider.GetScreenProperties());
     
-    eegeoWorld.Draw(drawParameters);
+    //eegeoWorld.Draw(drawParameters);
     
-    m_pExampleController->Draw();
+    //m_pExampleController->Draw();
     
     if (m_pLoadingScreen != NULL)
     {
-        m_pLoadingScreen->Draw();
+       // m_pLoadingScreen->Draw();
     }
 }
 
