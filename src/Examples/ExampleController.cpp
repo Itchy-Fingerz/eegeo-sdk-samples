@@ -153,6 +153,11 @@ void ExampleController::Draw()
 	}
 }
 
+void ExampleController::UpdateCardboardProfile(const float cardboardProfile[])
+{
+    m_pCurrentExample->UpdateCardboardProfile(cardboardProfile);
+}
+
 void ExampleController::RegisterExample(IExampleFactory* pFactory)
 {
 	Eegeo_ASSERT(pFactory != NULL);
@@ -167,6 +172,17 @@ void ExampleController::DestroyCurrentExample()
 		Eegeo_DELETE m_pCurrentExample;
 		m_pCurrentExample = NULL;
 	}
+}
+    
+
+void ExampleController::UpdateWorld(float dt, Examples::ScreenPropertiesProvider& screenPropertyProvider)
+{
+	m_pCurrentExample->UpdateWorld(dt, m_world, m_pCurrentExample->GetCurrentCameraState(), screenPropertyProvider, GetCurrentStreamingVolume());
+}
+
+void ExampleController::DrawWorld(Examples::ScreenPropertiesProvider& screenPropertyProvider)
+{
+	m_pCurrentExample->DrawWorld(m_world, m_pCurrentExample->GetCurrentCameraState(), screenPropertyProvider);
 }
     
 Eegeo::Camera::CameraState ExampleController::GetCurrentCameraState() const

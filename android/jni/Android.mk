@@ -64,7 +64,6 @@ LOCAL_EXPORT_C_INCLUDES := ./libs/vuforia/include
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-
 LOCAL_MODULE := eegeo-sdk-samples
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv2 -lz -lm
 LOCAL_LDLIBS += -fuse-ld=bfd -Wl,--stub-group-size=1000000
@@ -113,6 +112,8 @@ else
 endif 
 
 LOCAL_C_INCLUDES += ./libs/eegeo/rapidjson
+
+LOCAL_CFLAGS    := -DCARDBOARD
 
 $(info LOCAL_C_INCLUDES is $(LOCAL_C_INCLUDES))
 

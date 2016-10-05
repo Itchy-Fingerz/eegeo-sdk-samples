@@ -3,10 +3,11 @@
 package com.eegeo.mobilesdkharness;
 
 import java.util.Vector;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,7 +19,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
-
 import com.vuforia.Vuforia;
 
 
@@ -29,6 +29,8 @@ public class BackgroundThreadActivity extends MainActivity
 	private long m_nativeAppWindowPtr;
 	private ThreadedUpdateRunner m_threadedRunner;
 	private Thread m_updater;
+	private boolean m_isInVRMode;
+	private VRModule m_vrModule;
 	
     // Focus mode constants:
     private static final int FOCUS_MODE_NORMAL = 0;
@@ -259,9 +261,20 @@ public class BackgroundThreadActivity extends MainActivity
 		m_surfaceView.getHolder().addCallback(this);
 		m_surfaceView.setActivity(this);
 
+		m_vrModule = new VRModule(this);
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		final float dpi = dm.ydpi;
 		final Activity activity = this;
+		
+		 // Gets a reference to the loading dialog
+        mLoadingDialogContainer = findViewById(R.id.loading_indicator);
+		 mTextures = new Vector<Texture>();
+	     loadTextures();
+	        
+	     // Configure Vuforia to use OpenGL ES 2.0
+	     mVuforiaFlags = Vuforia.GL_20;
+		// Update the application status to start initializing application:
+        updateApplicationStatus(APPSTATUS_INIT_APP);
 
 		m_threadedRunner = new ThreadedUpdateRunner(false);
 		m_updater = new Thread(m_threadedRunner);
@@ -281,16 +294,6 @@ public class BackgroundThreadActivity extends MainActivity
 				}
 			}
 		});
-		
-        // Gets a reference to the loading dialog
-        mLoadingDialogContainer = findViewById(R.id.loading_indicator);
-		 mTextures = new Vector<Texture>();
-	     loadTextures();
-	        
-	     // Configure Vuforia to use OpenGL ES 2.0
-	     mVuforiaFlags = Vuforia.GL_20;
-		// Update the application status to start initializing application:
-        updateApplicationStatus(APPSTATUS_INIT_APP);
 	}
 	
 	/**
@@ -308,12 +311,44 @@ public class BackgroundThreadActivity extends MainActivity
         mTextures
             .add(Texture.loadTextureFromApk("Buildings.jpeg", getAssets()));
     }
+	
+
+	@SuppressLint("InlinedApi")
+	private void setScreenSettings(){
+		
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		if(android.os.Build.VERSION.SDK_INT<16)
+			getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+		else if(android.os.Build.VERSION.SDK_INT<19)
+			getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+		else
+			getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN);
+		
+	}
+	
+	public void enterVRMode()
+	{
+		if(!m_isInVRMode)
+		{
+			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+			m_isInVRMode = true;
+		}
+	}
+	
+	public void exitVRMode()
+	{
+		if(m_isInVRMode)
+		{
+			this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+			m_isInVRMode = false;
+		}
+	}
 
 	public void runOnNativeThread(Runnable runnable)
 	{
 		m_threadedRunner.postTo(runnable);
 	}
-	
+
 	 /** Native tracker initialization and deinitialization. */
     public native int initTracker();
     
@@ -359,6 +394,7 @@ public class BackgroundThreadActivity extends MainActivity
 		// Vuforia-specific resume operation
         Vuforia.onResume();
 		
+		setScreenSettings();
 		runOnNativeThread(new Runnable()
 		{
 			public void run()
@@ -369,6 +405,7 @@ public class BackgroundThreadActivity extends MainActivity
 				if(m_surfaceHolder != null && m_surfaceHolder.getSurface() != null)
 				{
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
+					NativeJniCalls.updateCardboardProfile(m_vrModule.getUpdatedCardboardProfile());
 					m_isNativeSurfaceSet = true;
 				}
 			}
@@ -413,6 +450,7 @@ public class BackgroundThreadActivity extends MainActivity
 	{
 		super.onDestroy();
 		
+		m_vrModule.stopTracker();
 		runOnNativeThread(new Runnable()
 		{
 			public void run()
@@ -464,7 +502,6 @@ public class BackgroundThreadActivity extends MainActivity
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
-		//nothing to do
 		  // Call native function to initialize rendering:
         initRendering();
         
@@ -507,6 +544,7 @@ public class BackgroundThreadActivity extends MainActivity
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
 					m_isNativeSurfaceSet = true;
 					m_threadedRunner.start();
+					NativeJniCalls.updateCardboardProfile(m_vrModule.getUpdatedCardboardProfile());
 				}
 			}
 		});
@@ -579,7 +617,7 @@ public class BackgroundThreadActivity extends MainActivity
 						{
 							if(m_running)
 							{
-								NativeJniCalls.updateNativeCode(deltaSeconds);
+								m_vrModule.updateNativeCode(deltaSeconds);
 								updateRenderView();
 							}
 							else

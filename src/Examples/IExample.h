@@ -9,6 +9,9 @@
 #include "RenderCamera.h"
 #include "CameraState.h"
 #include <string>
+#include "ScreenPropertiesProvider.h"
+#include "EegeoUpdateParameters.h"
+#include "EegeoWorld.h"
 
 namespace Examples
 {
@@ -27,9 +30,33 @@ namespace Examples
         virtual void Suspend()= 0;
         virtual void AfterCameraUpdate() { }
         
+        virtual void UpdateCardboardProfile(const float cardboardProfile[]){}
         virtual void NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties) = 0;
         
         virtual Eegeo::Camera::CameraState GetCurrentCameraState() const = 0;
+        virtual void SetVRCameraState(const float headTransform[]){};
+        virtual void UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
+        {
+        	Eegeo::EegeoUpdateParameters updateParameters(dt,
+        		    									  cameraState.LocationEcef(),
+														  cameraState.InterestPointEcef(),
+														  cameraState.ViewMatrix(),
+														  cameraState.ProjectionMatrix(),
+														  streamingVolume,
+														  screenPropertyProvider.GetScreenProperties());
+        	world.Update(updateParameters);
+        }
+
+        virtual void DrawWorld(Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
+        {
+        	Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+        	        							      cameraState.InterestPointEcef(),
+        											  cameraState.ViewMatrix(),
+        											  cameraState.ProjectionMatrix(),
+													  screenPropertyProvider.GetScreenProperties());
+
+        	world.Draw(drawParameters);
+        }
 
         virtual void NotifyViewNeedsLayout() = 0;
         

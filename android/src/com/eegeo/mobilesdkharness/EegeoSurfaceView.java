@@ -2,8 +2,6 @@
 
 package com.eegeo.mobilesdkharness;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -99,5 +97,4 @@ public class EegeoSurfaceView extends SurfaceView
 
 		return true;
 	}
-
 }
