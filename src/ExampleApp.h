@@ -12,6 +12,7 @@
 #include "ExampleInteriorModule.h"
 #include "VRCardboardController.h"
 #include "IVRModeTracker.h"
+#include "VuforiaModule.h"
 
 class ExampleApp : private Eegeo::NonCopyable
 {
@@ -25,6 +26,7 @@ private:
     Eegeo::Interiors::ExampleInteriorModule* m_pInteriorModule;
     Eegeo::Resources::Interiors::InteriorsCameraControllerFactory* m_pInteriorCameraControllerFactory;
     Eegeo::Camera::GlobeCamera::GlobeCameraControllerFactory* m_pGlobeCameraControllerFactory;
+    Eegeo::AR::VuforiaModule* m_pVuforiaModule;
 
 	Eegeo::EegeoWorld& World()
 	{

@@ -105,6 +105,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	, m_pWorld(pWorld)
     , m_pLoadingScreen(NULL)
 	, m_pExampleController(NULL)
+    , m_pVuforiaModule(NULL)
     , m_screenPropertiesProvider(screenProperties)
 {
 	Eegeo::EegeoWorld& eegeoWorld = *pWorld;
@@ -176,6 +177,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
     
     m_pInteriorModule->UpdateScreenProperties(screenProperties);
 
+    m_pVuforiaModule = Eegeo_NEW(Eegeo::AR::VuforiaModule)();
 
     //register all generic examples
     m_pExampleController->RegisterCameraExample<Examples::BillboardedSpriteExampleFactory>();
@@ -235,6 +237,7 @@ ExampleApp::~ExampleApp()
     delete m_pGlobeCameraControllerFactory;
     delete m_pInteriorCameraControllerFactory;
     delete m_pInteriorModule;
+    Eegeo_DELETE m_pVuforiaModule;
 }
 
 void ExampleApp::OnPause()
