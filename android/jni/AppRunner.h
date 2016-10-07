@@ -26,6 +26,11 @@ public:
 
 	void UpdateCardboardProfile(const float cardboardProfile[]);
 	void MagnetTriggered();
+	int InitTracker();
+	int LoadTrackerData();
+	void OnVuforiaInitializedNative();
+	void InitVuforiaRendering();
+	void UpdateVuforiaRendering(int width, int height);
 private:
 	const std::string& m_apiKey;
 	AndroidNativeState* m_pNativeState;

@@ -17,6 +17,11 @@ extern "C"
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateNativeCode(JNIEnv* jenv, jobject obj, jfloat deltaSeconds, jfloatArray headTransform);
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateCardboardProfile(JNIEnv* jenv, jobject obj, jfloatArray headTransform);
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_magnetTriggered(JNIEnv* jenv, jobject obj);
+	JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initTracker(JNIEnv* jenv, jobject obj);
+	JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_loadTrackerData(JNIEnv* jenv, jobject obj);
+	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_onVuforiaInitializedNative(JNIEnv* jenv, jobject obj);
+	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initVuforiaRendering(JNIEnv* jenv, jobject obj);
+	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateVuforiaRendering(JNIEnv* jenv, jobject obj, jint width, jint height);
 
 	//input
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_EegeoSurfaceView_processNativePointerDown(JNIEnv* jenv, jobject obj,

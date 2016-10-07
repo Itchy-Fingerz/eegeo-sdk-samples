@@ -1,24 +1,31 @@
 // Copyright eeGeo Ltd (2012-2016), All Rights Reserved
-#include "VuforiaModule.h"
+#include "ARVuforiaController.h"
 
 namespace Eegeo
 {
     namespace AR
     {
-        VuforiaModule::VuforiaModule()
+        ARVuforiaController::ARVuforiaController(int width, int height)
+        : currentCamera(Vuforia::CameraDevice::CAMERA_DIRECTION_BACK)
+        , screenWidth(width)
+        , screenHeight(height)
         {
-            
+        	EXAMPLE_LOG("VuforiaModule::Constructor");
         }
         
-        VuforiaModule::~VuforiaModule()
+        ARVuforiaController::~ARVuforiaController()
         {
-
+        	// Do application deinitialization in native code:
+        	DeinitApplicationNative();
+        	// Destroy the tracking data set:
+        	DestroyTrackerData();
+        	// Deinit the tracker:
+        	DeinitTracker();
         }
         
-        int VuforiaModule::InitTracker()
+        int ARVuforiaController::InitTracker()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_initTracker");
-            
             // Initialize the object tracker:
             Vuforia::TrackerManager& trackerManager = Vuforia::TrackerManager::getInstance();
             Vuforia::Tracker* tracker = trackerManager.initTracker(Vuforia::ObjectTracker::getClassType());
@@ -27,12 +34,12 @@ namespace Eegeo
                 EXAMPLE_LOG("Failed to initialize ObjectTracker.");
                 return 0;
             }
-            
+            InitApplicationNative(screenWidth, screenHeight);
             EXAMPLE_LOG("Successfully initialized ObjectTracker.");
             return 1;
         }
         
-        void VuforiaModule::DeinitTracker()
+        void ARVuforiaController::DeinitTracker()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_deinitTracker");
             
@@ -41,7 +48,7 @@ namespace Eegeo
             trackerManager.deinitTracker(Vuforia::ObjectTracker::getClassType());
         }
         
-        int VuforiaModule::LoadTrackerData()
+        int ARVuforiaController::LoadTrackerData()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_loadTrackerData");
             
@@ -94,7 +101,7 @@ namespace Eegeo
             return 1;
         }
         
-        int VuforiaModule::DestroyTrackerData()
+        int ARVuforiaController::DestroyTrackerData()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_destroyTrackerData");
             
@@ -152,7 +159,7 @@ namespace Eegeo
             return 1;
         }
         
-        void VuforiaModule::OnVuforiaInitializedNative()
+        void ARVuforiaController::OnVuforiaInitializedNative()
         {
             // Register the update callback where we handle the data set swap:
            // Vuforia::registerCallback(&updateCallback);
@@ -160,9 +167,10 @@ namespace Eegeo
             // Comment in to enable tracking of up to 2 targets simultaneously and
             // split the work over multiple frames:
             // Vuforia::setHint(Vuforia::HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 2);
+        	StartCamera();
         }
         
-        void VuforiaModule::RenderFrame()
+        void ARVuforiaController::RenderFrame()
         {
             EXAMPLE_LOG("Java_com_vuforia_samples_ImageTargets_GLRenderer_renderFrame");
             
@@ -296,7 +304,7 @@ namespace Eegeo
             Vuforia::Renderer::getInstance().end();
         }
         
-        void VuforiaModule::ConfigureVideoBackground()
+        void ARVuforiaController::ConfigureVideoBackground()
         {
             // Get the default video mode:
             Vuforia::CameraDevice& cameraDevice = Vuforia::CameraDevice::getInstance();
@@ -353,7 +361,7 @@ namespace Eegeo
             viewport[3] = config.mSize.data[1];
         }
         
-        void VuforiaModule::InitApplicationNative(int width, int height)
+        void ARVuforiaController::InitApplicationNative(int width, int height)
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_initApplicationNative");
             
@@ -406,7 +414,7 @@ namespace Eegeo
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_initApplicationNative finished");
         }
         
-        void VuforiaModule::DeinitApplicationNative()
+        void ARVuforiaController::DeinitApplicationNative()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_deinitApplicationNative");
             
@@ -428,11 +436,11 @@ namespace Eegeo
             }*/
         }
         
-        void VuforiaModule::StartCamera(int camera)
+        void ARVuforiaController::StartCamera()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_startCamera");
             
-            currentCamera = static_cast<Vuforia::CameraDevice::CAMERA_DIRECTION> (camera);
+            //currentCamera = static_cast<Vuforia::CameraDevice::CAMERA_DIRECTION> (m_camera);
             
             // Initialize the camera:
             if (!Vuforia::CameraDevice::getInstance().init(currentCamera))
@@ -463,9 +471,11 @@ namespace Eegeo
             Vuforia::Tracker* objectTracker = trackerManager.getTracker(Vuforia::ObjectTracker::getClassType());
             if(objectTracker != 0)
                 objectTracker->start();
+            // initialising the rendering
+            InitRendering();
         }
         
-        void VuforiaModule::StopCamera()
+        void ARVuforiaController::StopCamera()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_stopCamera");
             
@@ -479,7 +489,7 @@ namespace Eegeo
             Vuforia::CameraDevice::getInstance().deinit();
         }
         
-        void VuforiaModule::SetProjectionMatrix()
+        void ARVuforiaController::SetProjectionMatrix()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_setProjectionMatrix");
             
@@ -489,7 +499,7 @@ namespace Eegeo
             projectionMatrix = Vuforia::Tool::getProjectionGL(cameraCalibration, 10.0f, 5000.0f);
         }
         
-        bool VuforiaModule::StartExtendedTracking()
+        bool ARVuforiaController::StartExtendedTracking()
         {
             Vuforia::TrackerManager& trackerManager = Vuforia::TrackerManager::getInstance();
             Vuforia::ObjectTracker* objectTracker = static_cast<Vuforia::ObjectTracker*>(
@@ -510,7 +520,7 @@ namespace Eegeo
             return true;
         }
         
-        bool VuforiaModule::StopExtendedTracking()
+        bool ARVuforiaController::StopExtendedTracking()
         {
             Vuforia::TrackerManager& trackerManager = Vuforia::TrackerManager::getInstance();
             Vuforia::ObjectTracker* objectTracker = static_cast<Vuforia::ObjectTracker*>(
@@ -531,7 +541,7 @@ namespace Eegeo
             return true;
         }
         
-        void VuforiaModule::InitRendering()
+        void ARVuforiaController::InitRendering()
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_initRendering");
             
@@ -563,7 +573,7 @@ namespace Eegeo
                                                        "texSampler2D");
         }
         
-        void VuforiaModule::UpdateRendering(int width, int height)
+        void ARVuforiaController::UpdateRendering(int width, int height)
         {
             EXAMPLE_LOG("Java_com_eegeo_mobilesdkharness_BackgroundThreadActivity_updateRendering");
             
@@ -573,6 +583,9 @@ namespace Eegeo
             
             // Reconfigure the video background
             ConfigureVideoBackground();
+
+            // Setting up the projection matrix
+            SetProjectionMatrix();
         }
 
     }

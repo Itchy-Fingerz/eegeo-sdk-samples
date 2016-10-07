@@ -12,7 +12,7 @@
 #include "ExampleInteriorModule.h"
 #include "VRCardboardController.h"
 #include "IVRModeTracker.h"
-#include "VuforiaModule.h"
+#include "IARTracker.h"
 
 class ExampleApp : private Eegeo::NonCopyable
 {
@@ -26,7 +26,6 @@ private:
     Eegeo::Interiors::ExampleInteriorModule* m_pInteriorModule;
     Eegeo::Resources::Interiors::InteriorsCameraControllerFactory* m_pInteriorCameraControllerFactory;
     Eegeo::Camera::GlobeCamera::GlobeCameraControllerFactory* m_pGlobeCameraControllerFactory;
-    Eegeo::AR::VuforiaModule* m_pVuforiaModule;
 
 	Eegeo::EegeoWorld& World()
 	{
@@ -41,6 +40,7 @@ public:
     		const Eegeo::Config::DeviceSpec& deviceSpecs,
 			Examples::IExampleControllerView& view,
 			Examples::IVRModeTracker& vrModeTracker,
+			Examples::IARTracker& arTracker,
 			const Eegeo::Rendering::ScreenProperties& screenProperties,
 			Eegeo::Modules::CollisionVisualizationModule& collisionVisualizationModule,
 			Eegeo::Modules::BuildingFootprintsModule& buildingFootprintsModule);
@@ -53,6 +53,11 @@ public:
     void Update (float dt, const float headTransform[]);
     void UpdateCardboardProfile(const float cardboardProfile[]);
     void MagnetTriggered();
+    int InitTracker();
+    int LoadTrackerData();
+    void OnVuforiaInitializedNative();
+    void InitVuforiaRendering();
+    void UpdateVuforiaRendering(int width, int height);
     void DrawLoadingScreen ();
 
 	void Draw (float dt);

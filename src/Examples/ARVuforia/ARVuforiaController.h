@@ -35,7 +35,7 @@ namespace Eegeo
 {
     namespace AR
     {
-        class VuforiaModule
+        class ARVuforiaController
         {
         private:
             // Textures:
@@ -47,7 +47,7 @@ namespace Eegeo
             GLint textureCoordHandle        = 0;
             GLint mvpMatrixHandle           = 0;
             GLint texSampler2DHandle        = 0;
-            
+
             // Screen dimensions:
             int screenWidth                 = 0;
             int screenHeight                = 0;
@@ -75,8 +75,8 @@ namespace Eegeo
             int selectedDataset = STONES_AND_CHIPS_DATASET_ID;
             
         public:
-            VuforiaModule();
-            ~VuforiaModule();
+            ARVuforiaController(int width, int height);
+            ~ARVuforiaController();
             int InitTracker();
             void DeinitTracker();
             int LoadTrackerData();
@@ -86,7 +86,7 @@ namespace Eegeo
             void ConfigureVideoBackground();
             void InitApplicationNative(int width, int height);
             void DeinitApplicationNative();
-            void StartCamera(int camera);
+            void StartCamera();
             void StopCamera();
             void SetProjectionMatrix();
             bool StartExtendedTracking();

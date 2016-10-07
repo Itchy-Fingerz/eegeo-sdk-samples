@@ -2,7 +2,6 @@
 
 package com.eegeo.mobilesdkharness;
 
-import java.util.Vector;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -43,9 +42,8 @@ public class BackgroundThreadActivity extends MainActivity
     
     // Vuforia initialization flags:
     private int mVuforiaFlags = 0;
-    private boolean mContAutofocus = false;
     // The textures we will use for rendering:
-    private Vector<Texture> mTextures;
+    //private Vector<Texture> mTextures;
     
     private static View mLoadingDialogContainer;
     // Application status constants:
@@ -56,7 +54,6 @@ public class BackgroundThreadActivity extends MainActivity
     private static final int APPSTATUS_INIT_APP_AR = 3;
     private static final int APPSTATUS_LOAD_TRACKER = 4;
     private static final int APPSTATUS_INITED = 5;
-    private static final int APPSTATUS_CAMERA_STOPPED = 6;
     private static final int APPSTATUS_CAMERA_RUNNING = 7;
     
     final static int CAMERA_DIRECTION_DEFAULT = 0;
@@ -81,11 +78,11 @@ public class BackgroundThreadActivity extends MainActivity
     private LoadTrackerTask mLoadTrackerTask;
 	
     /** Native function for initializing the renderer. */
-    public native void initRendering();
+    //public native void initRendering();
     
     
     /** Native function to update the renderer. */
-    public native void updateRendering(int width, int height);
+    //public native void updateRendering(int width, int height);
     
     private boolean m_isNativeSurfaceSet;
 
@@ -171,7 +168,8 @@ public class BackgroundThreadActivity extends MainActivity
             	Log.e("Eegeo-AR","InitVuforiaTask::onPostExecute: Vuforia "
                     + "initialization successful");
                 
-                updateApplicationStatus(APPSTATUS_INIT_TRACKER);
+                //updateApplicationStatus(APPSTATUS_INIT_TRACKER);
+            	initTracker();
             } else
             {
                 // Create dialog box for display error:
@@ -203,7 +201,7 @@ public class BackgroundThreadActivity extends MainActivity
             synchronized (mShutdownLock)
             {
                 // Load the tracker data set:
-                return (loadTrackerData() > 0);
+                return (NativeJniCalls.loadTrackerData() > 0);
             }
         }
         
@@ -217,6 +215,7 @@ public class BackgroundThreadActivity extends MainActivity
             {
                 // Done loading the tracker, update application status:
                 updateApplicationStatus(APPSTATUS_INITED);
+                loadingDialogHandler.sendEmptyMessage(HIDE_LOADING_DIALOG);
             } else
             {
                 // Create dialog box for display error:
@@ -268,13 +267,14 @@ public class BackgroundThreadActivity extends MainActivity
 		
 		 // Gets a reference to the loading dialog
         mLoadingDialogContainer = findViewById(R.id.loading_indicator);
-		 mTextures = new Vector<Texture>();
-	     loadTextures();
+		 //mTextures = new Vector<Texture>();
+	     //loadTextures();
 	        
 	     // Configure Vuforia to use OpenGL ES 2.0
 	     mVuforiaFlags = Vuforia.GL_20;
 		// Update the application status to start initializing application:
-        updateApplicationStatus(APPSTATUS_INIT_APP);
+        //updateApplicationStatus(APPSTATUS_INIT_APP);
+	     initApplication();
 
 		m_threadedRunner = new ThreadedUpdateRunner(false);
 		m_updater = new Thread(m_threadedRunner);
@@ -296,25 +296,10 @@ public class BackgroundThreadActivity extends MainActivity
 		});
 	}
 	
-	/**
-     * We want to load specific textures from the APK, which we will later use
-     * for rendering.
-     */
-    private void loadTextures()
-    {
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBrass.png",
-            getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBlue.png",
-            getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotRed.png",
-            getAssets()));
-        mTextures
-            .add(Texture.loadTextureFromApk("Buildings.jpeg", getAssets()));
-    }
-	
 
 	@SuppressLint("InlinedApi")
-	private void setScreenSettings(){
+	private void setScreenSettings()
+	{
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		if(android.os.Build.VERSION.SDK_INT<16)
@@ -348,38 +333,6 @@ public class BackgroundThreadActivity extends MainActivity
 	{
 		m_threadedRunner.postTo(runnable);
 	}
-
-	 /** Native tracker initialization and deinitialization. */
-    public native int initTracker();
-    
-    
-    public native void deinitTracker();
-    
-    
-    /** Native functions to load and destroy tracking data. */
-    public native int loadTrackerData();
-    
-    
-    public native void destroyTrackerData();
-    
-    
-    /** Native sample initialization. */
-    public native void onVuforiaInitializedNative();
-    
-    
-    /** Native methods for starting and stopping the desired camera. */
-    private native void startCamera(int camera);
-    
-    
-    private native void stopCamera();
-    
-    
-    /**
-     * Native method for setting / updating the projection matrix for AR content
-     * rendering
-     */
-    private native void setProjectionMatrix();
-    
     
     /** Native method for starting / stopping off target tracking */
     private native boolean startExtendedTracking();
@@ -410,13 +363,6 @@ public class BackgroundThreadActivity extends MainActivity
 				}
 			}
 		});
-		
-		// We may start the camera only if the Vuforia SDK has already been
-        // initialized
-        if (mAppStatus == APPSTATUS_CAMERA_STOPPED)
-        {
-            updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
-        }
 	}
 
 	@Override
@@ -433,17 +379,12 @@ public class BackgroundThreadActivity extends MainActivity
 			}
 		});
         
-        if (mAppStatus == APPSTATUS_CAMERA_RUNNING)
-        {
-            updateApplicationStatus(APPSTATUS_CAMERA_STOPPED);
-        }
-        
         // Vuforia-specific pause operation
         Vuforia.onPause();
 	}
 	
 	 /** Native function to deinitialize the application. */
-    private native void deinitApplicationNative();
+   // private native void deinitApplicationNative();
 
 	@Override
 	protected void onDestroy()
@@ -477,33 +418,13 @@ public class BackgroundThreadActivity extends MainActivity
             mLoadTrackerTask.cancel(true);
             mLoadTrackerTask = null;
         }
-        
-        // Ensure that all asynchronous operations to initialize Vuforia
-        // and loading the tracker datasets do not overlap:
-        synchronized (mShutdownLock)
-        {
-            
-            // Do application deinitialization in native code:
-            deinitApplicationNative();
-            
-            // Destroy the tracking data set:
-            destroyTrackerData();
-            
-            // Deinit the tracker:
-            deinitTracker();
-            
-            // Deinitialize Vuforia SDK:
-            Vuforia.deinit();
-        }
-        
-        System.gc();
 	}
 	
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
 		  // Call native function to initialize rendering:
-        initRendering();
+        //NativeJniCalls.initVuforiaRendering();
         
         // Call Vuforia function to (re)initialize rendering after first use
         // or after OpenGL ES context was lost (e.g. after onPause/onResume):
@@ -524,11 +445,8 @@ public class BackgroundThreadActivity extends MainActivity
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+	public void surfaceChanged(SurfaceHolder holder, int format, final int width, final int height)
 	{
-		// Call native function to update rendering when render surface
-        // parameters have changed:
-        updateRendering(width, height);
         
         // Call Vuforia function to handle render surface size changes:
         Vuforia.onSurfaceChanged(width, height);
@@ -541,6 +459,9 @@ public class BackgroundThreadActivity extends MainActivity
 				m_surfaceHolder = h;
 				if(m_surfaceHolder != null) 
 				{
+					// Call native function to update rendering when render surface
+			        // parameters have changed:
+			        NativeJniCalls.updateVuforiaRendering(width, height);
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
 					m_isNativeSurfaceSet = true;
 					m_threadedRunner.start();
@@ -618,7 +539,7 @@ public class BackgroundThreadActivity extends MainActivity
 							if(m_running)
 							{
 								m_vrModule.updateNativeCode(deltaSeconds);
-								updateRenderView();
+								//updateRenderView();
 							}
 							else
 							{
@@ -653,65 +574,6 @@ public class BackgroundThreadActivity extends MainActivity
         // Execute application state-specific actions:
         switch (mAppStatus)
         {
-            case APPSTATUS_INIT_APP:
-                // Initialize application elements that do not rely on Vuforia
-                // initialization:
-                initApplication();
-                
-                // Proceed to next application initialization status:
-                updateApplicationStatus(APPSTATUS_INIT_VUFORIA);
-                break;
-            
-            case APPSTATUS_INIT_VUFORIA:
-                // Initialize Vuforia SDK asynchronously to avoid blocking the
-                // main (UI) thread.
-                //
-                // NOTE: This task instance must be created and invoked on the
-                // UI thread and it can be executed only once!
-                try
-                {
-                    mInitVuforiaTask = new InitVuforiaTask();
-                    mInitVuforiaTask.execute();
-                } catch (Exception e)
-                {
-                    Log.e("Eegeo-AR","Initializing Vuforia SDK failed");
-                }
-                break;
-            
-            case APPSTATUS_INIT_TRACKER:
-                // Initialize the ObjectTracker:
-                if (initTracker() > 0)
-                {
-                    // Proceed to next application initialization status:
-                    updateApplicationStatus(APPSTATUS_INIT_APP_AR);
-                }
-                break;
-            
-            case APPSTATUS_INIT_APP_AR:
-                // Initialize Augmented Reality-specific application elements
-                // that may rely on the fact that the Vuforia SDK has been
-                // already initialized:
-                initApplicationAR();
-                
-                // Proceed to next application initialization status:
-                updateApplicationStatus(APPSTATUS_LOAD_TRACKER);
-                break;
-            
-            case APPSTATUS_LOAD_TRACKER:
-                // Load the tracking data set:
-                //
-                // NOTE: This task instance must be created and invoked on the
-                // UI thread and it can be executed only once!
-                try
-                {
-                    mLoadTrackerTask = new LoadTrackerTask();
-                    mLoadTrackerTask.execute();
-                } catch (Exception e)
-                {
-                	 Log.e("Eegeo-AR","Loading tracking data set failed");
-                }
-                break;
-            
             case APPSTATUS_INITED:
                 // Hint to the virtual machine that it would be a good time to
                 // run the garbage collector:
@@ -721,39 +583,10 @@ public class BackgroundThreadActivity extends MainActivity
                 System.gc();
                 
                 // Native post initialization:
-                onVuforiaInitializedNative();
+                NativeJniCalls.onVuforiaInitializedNative();
                 // Start the camera:
-                updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
-                
-                break;
-            
-            case APPSTATUS_CAMERA_STOPPED:
-                // Call the native function to stop the camera:
-                stopCamera();
-                break;
-            
-            case APPSTATUS_CAMERA_RUNNING:
-                // Call the native function to start the camera:
-                startCamera(mCurrentCamera);
-                
-                // Hides the Loading Dialog
-                loadingDialogHandler.sendEmptyMessage(HIDE_LOADING_DIALOG);
-                
-                // Set continuous auto-focus if supported by the device,
-                // otherwise default back to regular auto-focus mode.
-                // This will be activated by a tap to the screen in this
-                // application.
-                boolean result = setFocusMode(FOCUS_MODE_CONTINUOUS_AUTO);
-                if (!result)
-                {
-                	 Log.e("Eegeo-AR","Unable to enable continuous autofocus");
-                    mContAutofocus = false;
-                    setFocusMode(FOCUS_MODE_NORMAL);
-                } else
-                {
-                    mContAutofocus = true;
-                }
-                
+                // camera already started from native code from above method
+                mAppStatus = APPSTATUS_CAMERA_RUNNING;
                 break;
             
             default:
@@ -761,15 +594,11 @@ public class BackgroundThreadActivity extends MainActivity
         }
     }
     
-    private native boolean setFocusMode(int mode);
-    
-    /** Tells native code whether we are in portait or landscape mode */
-    private native void setActivityPortraitMode(boolean isPortrait);
     
     /** Initialize application GUI elements that are not related to AR. */
     private void initApplication()
     {
-        setActivityPortraitMode(true);
+        //setActivityPortraitMode(true);
         
         // Query display dimensions:
         storeScreenDimensions();
@@ -780,47 +609,6 @@ public class BackgroundThreadActivity extends MainActivity
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
     
-    
-    /** Native function to initialize the application. */
-    private native void initApplicationNative(int width, int height);
-    
-    
-    /** Initializes AR application components. */
-    private void initApplicationAR()
-    {
-        // Do application initialization in native code (e.g. registering
-        // callbacks, etc.):
-        initApplicationNative(mScreenWidth, mScreenHeight);
-        
-        
-        
-        // Shows the loading indicator at start
-        loadingDialogHandler.sendEmptyMessage(SHOW_LOADING_DIALOG);
-        
-    }
-    
-    /** Tells native code to switch dataset as soon as possible */
-    private native void switchDatasetAsap(int datasetId);
-    
-    
-    private native boolean autofocus();
-    
-    /** Activates the Flash */
-    private native boolean activateFlash(boolean flash);
-    
-    
-    /** Returns the number of registered textures. */
-    public int getTextureCount()
-    {
-        return mTextures.size();
-    }
-    
-    
-    /** Returns the texture object at the specified index. */
-    public Texture getTexture(int i)
-    {
-        return mTextures.elementAt(i);
-    }
     
     /**
      * Updates projection matrix and viewport after a screen rotation change was
@@ -842,10 +630,10 @@ public class BackgroundThreadActivity extends MainActivity
                 storeScreenDimensions();
                 
                 // Update viewport via renderer:
-                updateRendering(mScreenWidth, mScreenHeight);
+                NativeJniCalls.updateVuforiaRendering(mScreenWidth, mScreenHeight);
                 
                 // Update projection matrix:
-                setProjectionMatrix();
+                //setProjectionMatrix(); Already done from he above native method
                 
                 // Cache last rotation used for setting projection matrix:
                 mLastScreenRotation = currentScreenRotation;
@@ -853,11 +641,70 @@ public class BackgroundThreadActivity extends MainActivity
         }
         if(m_isNativeSurfaceSet)
         {
-        	renderFrame();
+        	//renderFrame();
         }
     }
     
 	/** The native render function. */
     public native void renderFrame();
+
+
+	@Override
+	public void initVuforia()
+	{
+		loadingDialogHandler.sendEmptyMessage(SHOW_LOADING_DIALOG);
+		 try
+         {
+             mInitVuforiaTask = new InitVuforiaTask();
+             mInitVuforiaTask.execute();
+         } catch (Exception e)
+         {
+             Log.e("Eegeo-AR","Initializing Vuforia SDK failed");
+         }
+	}
+	
+	private void initTracker()
+	{
+		 if (NativeJniCalls.initTracker() > 0)
+         {
+			loadTracker();
+         }
+	}
+	
+	private void loadTracker()
+	{
+		try
+        {
+            mLoadTrackerTask = new LoadTrackerTask();
+            mLoadTrackerTask.execute();
+        } catch (Exception e)
+        {
+        	 Log.e("Eegeo-AR","Loading tracking data set failed");
+        }
+	}
+
+	@Override
+	public void deInitVuforia()
+	{
+        // Ensure that all asynchronous operations to initialize Vuforia
+        // and loading the tracker datasets do not overlap:
+        synchronized (mShutdownLock)
+        {
+            
+           /* // Do application deinitialization in native code:
+            deinitApplicationNative();
+            
+            // Destroy the tracking data set:
+            destroyTrackerData();
+            
+            // Deinit the tracker:
+            deinitTracker();*/
+            
+            // Deinitialize Vuforia SDK:
+            Vuforia.deinit();
+        }
+        
+        System.gc();
+	}
     
 }

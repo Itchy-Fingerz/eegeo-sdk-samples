@@ -134,6 +134,31 @@ JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_magnetTrig
     g_pAppRunner->MagnetTriggered();
 }
 
+JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initTracker(JNIEnv* jenv, jobject obj)
+{
+    return g_pAppRunner->InitTracker();
+}
+
+JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_loadTrackerData(JNIEnv* jenv, jobject obj)
+{
+	return g_pAppRunner->LoadTrackerData();
+}
+
+JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_onVuforiaInitializedNative(JNIEnv* jenv, jobject obj)
+{
+	g_pAppRunner->OnVuforiaInitializedNative();
+}
+
+JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initVuforiaRendering(JNIEnv* jenv, jobject obj)
+{
+	g_pAppRunner->InitVuforiaRendering();
+}
+
+JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateVuforiaRendering(JNIEnv* jenv, jobject obj, jint width, jint height)
+{
+	g_pAppRunner->UpdateVuforiaRendering(width, height);
+}
+
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_EegeoSurfaceView_processNativePointerDown(JNIEnv* jenv, jobject obj,
         jint primaryActionIndex,
         jint primaryActionIdentifier,
