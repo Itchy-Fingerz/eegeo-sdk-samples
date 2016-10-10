@@ -28,7 +28,7 @@ namespace Examples
 	, m_arTracker(arTracker)
     {
         Eegeo::m44 projectionMatrix = Eegeo::m44(pCameraController->GetRenderCamera().GetProjectionMatrix());
-        m_pCameraController = new Eegeo::VR::VRCameraController(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
+        m_pCameraController = new Eegeo::AR::ARCameraController(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
         m_pCameraController->GetCamera().SetProjectionMatrix(projectionMatrix);
         m_pARController = Eegeo_NEW(Eegeo::AR::ARVuforiaController)(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
         NotifyScreenPropertiesChanged(initialScreenProperties.GetScreenProperties());
