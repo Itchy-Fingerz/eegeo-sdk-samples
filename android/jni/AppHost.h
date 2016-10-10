@@ -68,7 +68,6 @@ public:
 	int InitTracker();
 	int LoadTrackerData();
 	void OnVuforiaInitializedNative();
-	void InitVuforiaRendering();
 	void UpdateVuforiaRendering(int width, int height);
 	void SetEnvironmentFlatten(bool flattenState);
 	void SetCameraLocation(const Eegeo::Space::LatLongAltitude& interestPoint, double distanceToInterestPoint, double orientationInDegrees);

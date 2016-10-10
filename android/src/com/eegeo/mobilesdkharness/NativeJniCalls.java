@@ -18,6 +18,5 @@ public class NativeJniCalls
 	public static native int initTracker();
 	public static native int loadTrackerData();
 	public static native void onVuforiaInitializedNative();
-	public static native void initVuforiaRendering();
 	public static native void updateVuforiaRendering(int width, int height);
 }

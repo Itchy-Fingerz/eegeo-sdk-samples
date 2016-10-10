@@ -56,7 +56,6 @@ public:
     int InitTracker();
     int LoadTrackerData();
     void OnVuforiaInitializedNative();
-    void InitVuforiaRendering();
     void UpdateVuforiaRendering(int width, int height);
     void DrawLoadingScreen ();
 

@@ -126,14 +126,6 @@ void AppRunner::OnVuforiaInitializedNative()
 	}
 }
 
-void AppRunner::InitVuforiaRendering()
-{
-	if(m_pAppHost != NULL)
-	{
-		m_pAppHost->InitVuforiaRendering();
-	}
-}
-
 void AppRunner::UpdateVuforiaRendering(int width, int height)
 {
 	if(m_pAppHost != NULL)

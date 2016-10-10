@@ -20,7 +20,6 @@ extern "C"
 	JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initTracker(JNIEnv* jenv, jobject obj);
 	JNIEXPORT int JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_loadTrackerData(JNIEnv* jenv, jobject obj);
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_onVuforiaInitializedNative(JNIEnv* jenv, jobject obj);
-	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initVuforiaRendering(JNIEnv* jenv, jobject obj);
 	JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateVuforiaRendering(JNIEnv* jenv, jobject obj, jint width, jint height);
 
 	//input

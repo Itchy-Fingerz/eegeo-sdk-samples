@@ -249,14 +249,6 @@ void AppHost::OnVuforiaInitializedNative()
 	}
 }
 
-void AppHost::InitVuforiaRendering()
-{
-	if(m_pApp != NULL)
-	{
-		m_pApp->InitVuforiaRendering();
-	}
-}
-
 void AppHost::UpdateVuforiaRendering(int width, int height)
 {
 	if(m_pApp != NULL)

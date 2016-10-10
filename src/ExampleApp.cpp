@@ -348,11 +348,6 @@ void ExampleApp::OnVuforiaInitializedNative()
 	m_pExampleController->OnVuforiaInitializedNative();
 }
 
-void ExampleApp::InitVuforiaRendering()
-{
-	m_pExampleController->InitVuforiaRendering();
-}
-
 void ExampleApp::UpdateVuforiaRendering(int width, int height)
 {
 	m_pExampleController->UpdateVuforiaRendering(width, height);

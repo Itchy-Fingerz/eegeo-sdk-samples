@@ -149,11 +149,6 @@ JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_onVuforiaI
 	g_pAppRunner->OnVuforiaInitializedNative();
 }
 
-JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_initVuforiaRendering(JNIEnv* jenv, jobject obj)
-{
-	g_pAppRunner->InitVuforiaRendering();
-}
-
 JNIEXPORT void JNICALL Java_com_eegeo_mobilesdkharness_NativeJniCalls_updateVuforiaRendering(JNIEnv* jenv, jobject obj, jint width, jint height)
 {
 	g_pAppRunner->UpdateVuforiaRendering(width, height);
