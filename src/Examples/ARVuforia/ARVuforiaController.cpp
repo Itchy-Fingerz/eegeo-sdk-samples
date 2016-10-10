@@ -80,7 +80,7 @@ namespace Eegeo
             // Load the data sets:
             if (!dataSetStonesAndChips->load("StonesAndChips.xml", Vuforia::STORAGE_APPRESOURCE))
             {
-                LOG("Failed to load data set.");
+            	EXAMPLE_LOG("Failed to load data set.");
                 return 0;
             }
             
@@ -196,7 +196,7 @@ namespace Eegeo
                 glFrontFace(GL_CCW);   //Back camera
             
             // Set the viewport
-            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);*/
             
             // Did we find any trackables this frame?
             for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
@@ -214,17 +214,23 @@ namespace Eegeo
                     if (strcmp(trackable.getName(), "chips") == 0)
                     {
                         textureIndex = 0;
+                        EXAMPLE_LOG("Chips Detected");
                     }
                     else if (strcmp(trackable.getName(), "stones") == 0)
                     {
                         textureIndex = 1;
+                        EXAMPLE_LOG("Stons Detected");
                     }
                     else
                     {
                         textureIndex = 2;
+                        EXAMPLE_LOG("Default Detected");
                     }
+
+                }
+            }
                     
-                    const Texture* const thisTexture = textures[textureIndex];
+                 /*   const Texture* const thisTexture = textures[textureIndex];
                     
                     Vuforia::Matrix44F modelViewProjection;
                     

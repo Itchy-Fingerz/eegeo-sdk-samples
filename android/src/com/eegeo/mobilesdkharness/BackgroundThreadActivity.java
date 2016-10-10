@@ -31,21 +31,16 @@ public class BackgroundThreadActivity extends MainActivity
 	private boolean m_isInVRMode;
 	private VRModule m_vrModule;
 	
-    // Focus mode constants:
-    private static final int FOCUS_MODE_NORMAL = 0;
-    private static final int FOCUS_MODE_CONTINUOUS_AUTO = 1;
 	// Constants for Hiding/Showing Loading dialog
     static final int HIDE_LOADING_DIALOG = 0;
     static final int SHOW_LOADING_DIALOG = 1;
     
-    private Object mShutdownLock = new Object();
+    private Object m_shutdownLock = new Object();
     
     // Vuforia initialization flags:
-    private int mVuforiaFlags = 0;
-    // The textures we will use for rendering:
-    //private Vector<Texture> mTextures;
+    private int m_vuforiaFlags = 0;
     
-    private static View mLoadingDialogContainer;
+    private static View m_loadingDialogContainer;
     // Application status constants:
     private static final int APPSTATUS_UNINITED = -1;
     private static final int APPSTATUS_INIT_APP = 0;
@@ -57,34 +52,23 @@ public class BackgroundThreadActivity extends MainActivity
     private static final int APPSTATUS_CAMERA_RUNNING = 7;
     
     final static int CAMERA_DIRECTION_DEFAULT = 0;
-    final static int CAMERA_DIRECTION_BACK = 1;
-    final static int CAMERA_DIRECTION_FRONT = 2;
     // Keeps track of the current camera
-    int mCurrentCamera = CAMERA_DIRECTION_DEFAULT;
+    int m_currentCamera = CAMERA_DIRECTION_DEFAULT;
     // Constant representing invalid screen orientation to trigger a query:
     private static final int INVALID_SCREEN_ROTATION = -1;
     
     // Last detected screen rotation:
-    private int mLastScreenRotation = INVALID_SCREEN_ROTATION;
+    private int m_lastScreenRotation = INVALID_SCREEN_ROTATION;
     // The current application status:
-    private int mAppStatus = APPSTATUS_UNINITED;
+    private int m_appStatus = APPSTATUS_UNINITED;
     
     // Display size of the device:
-    private int mScreenWidth = 0;
-    private int mScreenHeight = 0;
+    private int m_screenWidth = 0;
+    private int m_screenHeight = 0;
     
     // The async tasks to initialize the Vuforia SDK:
-    private InitVuforiaTask mInitVuforiaTask;
-    private LoadTrackerTask mLoadTrackerTask;
-	
-    /** Native function for initializing the renderer. */
-    //public native void initRendering();
-    
-    
-    /** Native function to update the renderer. */
-    //public native void updateRendering(int width, int height);
-    
-    private boolean m_isNativeSurfaceSet;
+    private InitVuforiaTask m_initVuforiaTask;
+    private LoadTrackerTask m_loadTrackerTask;
 
 	static {
 		System.loadLibrary("eegeo-sdk-samples");
@@ -101,12 +85,12 @@ public class BackgroundThreadActivity extends MainActivity
         { 
             if (msg.what == SHOW_LOADING_DIALOG)
             {
-                BackgroundThreadActivity.mLoadingDialogContainer
+                BackgroundThreadActivity.m_loadingDialogContainer
                     .setVisibility(View.VISIBLE);
                 
             } else if (msg.what == HIDE_LOADING_DIALOG)
             {
-            	BackgroundThreadActivity.mLoadingDialogContainer.setVisibility(View.GONE);
+            	BackgroundThreadActivity.m_loadingDialogContainer.setVisibility(View.GONE);
             }
         }
     }
@@ -122,9 +106,9 @@ public class BackgroundThreadActivity extends MainActivity
         protected Boolean doInBackground(Void... params)
         {
             // Prevent the onDestroy() method to overlap with initialization:
-            synchronized (mShutdownLock)
+            synchronized (m_shutdownLock)
             {
-                Vuforia.setInitParameters(BackgroundThreadActivity.this, mVuforiaFlags, "AQJPDKr/////AAAAGddZNNN7v0bggrFUaxqVUVN0n+1qqW3B9qOH7woVAjB2h/lc23NU8Oh+1dt4qyuelrh3M+55/jWcazJEoYEXbNqSlZeaxV6jGgggEb5qr6kIUK8ua8Ve8yGpi8rO5M7F0EwH4c1n8kL1avrBfWwo50zEs305oHpRU50HdyoGf9lD/jwOyw8uVOWcPc0tXalTgOsLoHN63HgOT1q+Rp+5zfec0RzCEZTCAGLUqYNmg+N3wUeULwC5EbKBKAn8NMJJZRspIrePuJE6fBWYWJKXTQLDCj/fRrCPg6afYipLi3Nr3bbyrrriMCkBuVvjS7NmBujEpWJuYL2roTaZ62VpIEE7wpmaACUTOLrwnFM58Hov");
+                Vuforia.setInitParameters(BackgroundThreadActivity.this, m_vuforiaFlags, "AQJPDKr/////AAAAGddZNNN7v0bggrFUaxqVUVN0n+1qqW3B9qOH7woVAjB2h/lc23NU8Oh+1dt4qyuelrh3M+55/jWcazJEoYEXbNqSlZeaxV6jGgggEb5qr6kIUK8ua8Ve8yGpi8rO5M7F0EwH4c1n8kL1avrBfWwo50zEs305oHpRU50HdyoGf9lD/jwOyw8uVOWcPc0tXalTgOsLoHN63HgOT1q+Rp+5zfec0RzCEZTCAGLUqYNmg+N3wUeULwC5EbKBKAn8NMJJZRspIrePuJE6fBWYWJKXTQLDCj/fRrCPg6afYipLi3Nr3bbyrrriMCkBuVvjS7NmBujEpWJuYL2roTaZ62VpIEE7wpmaACUTOLrwnFM58Hov");
                 
                 do
                 {
@@ -198,7 +182,7 @@ public class BackgroundThreadActivity extends MainActivity
         protected Boolean doInBackground(Void... params)
         {
             // Prevent the onDestroy() method to overlap:
-            synchronized (mShutdownLock)
+            synchronized (m_shutdownLock)
             {
                 // Load the tracker data set:
                 return (NativeJniCalls.loadTrackerData() > 0);
@@ -245,8 +229,8 @@ public class BackgroundThreadActivity extends MainActivity
         // Query display dimensions:
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        mScreenWidth = metrics.widthPixels;
-        mScreenHeight = metrics.heightPixels;
+        m_screenWidth = metrics.widthPixels;
+        m_screenHeight = metrics.heightPixels;
     }
 	
 	@Override
@@ -266,12 +250,12 @@ public class BackgroundThreadActivity extends MainActivity
 		final Activity activity = this;
 		
 		 // Gets a reference to the loading dialog
-        mLoadingDialogContainer = findViewById(R.id.loading_indicator);
+        m_loadingDialogContainer = findViewById(R.id.loading_indicator);
 		 //mTextures = new Vector<Texture>();
 	     //loadTextures();
 	        
 	     // Configure Vuforia to use OpenGL ES 2.0
-	     mVuforiaFlags = Vuforia.GL_20;
+	     m_vuforiaFlags = Vuforia.GL_20;
 		// Update the application status to start initializing application:
         //updateApplicationStatus(APPSTATUS_INIT_APP);
 	     initApplication();
@@ -359,7 +343,6 @@ public class BackgroundThreadActivity extends MainActivity
 				{
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
 					NativeJniCalls.updateCardboardProfile(m_vrModule.getUpdatedCardboardProfile());
-					m_isNativeSurfaceSet = true;
 				}
 			}
 		});
@@ -405,18 +388,18 @@ public class BackgroundThreadActivity extends MainActivity
 		m_threadedRunner.blockUntilThreadHasDestroyedPlatform();
 		m_nativeAppWindowPtr = 0;
 		// Cancel potentially running tasks
-        if (mInitVuforiaTask != null
-            && mInitVuforiaTask.getStatus() != InitVuforiaTask.Status.FINISHED)
+        if (m_initVuforiaTask != null
+            && m_initVuforiaTask.getStatus() != InitVuforiaTask.Status.FINISHED)
         {
-            mInitVuforiaTask.cancel(true);
-            mInitVuforiaTask = null;
+            m_initVuforiaTask.cancel(true);
+            m_initVuforiaTask = null;
         }
         
-        if (mLoadTrackerTask != null
-            && mLoadTrackerTask.getStatus() != LoadTrackerTask.Status.FINISHED)
+        if (m_loadTrackerTask != null
+            && m_loadTrackerTask.getStatus() != LoadTrackerTask.Status.FINISHED)
         {
-            mLoadTrackerTask.cancel(true);
-            mLoadTrackerTask = null;
+            m_loadTrackerTask.cancel(true);
+            m_loadTrackerTask = null;
         }
 	}
 	
@@ -463,7 +446,6 @@ public class BackgroundThreadActivity extends MainActivity
 			        // parameters have changed:
 			        NativeJniCalls.updateVuforiaRendering(width, height);
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
-					m_isNativeSurfaceSet = true;
 					m_threadedRunner.start();
 					NativeJniCalls.updateCardboardProfile(m_vrModule.getUpdatedCardboardProfile());
 				}
@@ -565,14 +547,14 @@ public class BackgroundThreadActivity extends MainActivity
     private synchronized void updateApplicationStatus(int appStatus)
     {
         // Exit if there is no change in status:
-        if (mAppStatus == appStatus)
+        if (m_appStatus == appStatus)
             return;
         
         // Store new status value:
-        mAppStatus = appStatus;
+        m_appStatus = appStatus;
         
         // Execute application state-specific actions:
-        switch (mAppStatus)
+        switch (m_appStatus)
         {
             case APPSTATUS_INITED:
                 // Hint to the virtual machine that it would be a good time to
@@ -586,7 +568,7 @@ public class BackgroundThreadActivity extends MainActivity
                 NativeJniCalls.onVuforiaInitializedNative();
                 // Start the camera:
                 // camera already started from native code from above method
-                mAppStatus = APPSTATUS_CAMERA_RUNNING;
+                m_appStatus = APPSTATUS_CAMERA_RUNNING;
                 break;
             
             default:
@@ -618,11 +600,11 @@ public class BackgroundThreadActivity extends MainActivity
     {
         int currentScreenRotation = getWindowManager().getDefaultDisplay()
             .getRotation();
-        if (currentScreenRotation != mLastScreenRotation)
+        if (currentScreenRotation != m_lastScreenRotation)
         {
             // Set projection matrix if there is already a valid one:
             if (Vuforia.isInitialized()
-                && (mAppStatus == APPSTATUS_CAMERA_RUNNING))
+                && (m_appStatus == APPSTATUS_CAMERA_RUNNING))
             {
                 Log.d("EEgeo-AR","updateRenderView");
                 
@@ -630,24 +612,16 @@ public class BackgroundThreadActivity extends MainActivity
                 storeScreenDimensions();
                 
                 // Update viewport via renderer:
-                NativeJniCalls.updateVuforiaRendering(mScreenWidth, mScreenHeight);
+                NativeJniCalls.updateVuforiaRendering(m_screenWidth, m_screenHeight);
                 
                 // Update projection matrix:
                 //setProjectionMatrix(); Already done from he above native method
                 
                 // Cache last rotation used for setting projection matrix:
-                mLastScreenRotation = currentScreenRotation;
+                m_lastScreenRotation = currentScreenRotation;
             }
         }
-        if(m_isNativeSurfaceSet)
-        {
-        	//renderFrame();
-        }
     }
-    
-	/** The native render function. */
-    public native void renderFrame();
-
 
 	@Override
 	public void initVuforia()
@@ -655,8 +629,8 @@ public class BackgroundThreadActivity extends MainActivity
 		loadingDialogHandler.sendEmptyMessage(SHOW_LOADING_DIALOG);
 		 try
          {
-             mInitVuforiaTask = new InitVuforiaTask();
-             mInitVuforiaTask.execute();
+             m_initVuforiaTask = new InitVuforiaTask();
+             m_initVuforiaTask.execute();
          } catch (Exception e)
          {
              Log.e("Eegeo-AR","Initializing Vuforia SDK failed");
@@ -675,8 +649,8 @@ public class BackgroundThreadActivity extends MainActivity
 	{
 		try
         {
-            mLoadTrackerTask = new LoadTrackerTask();
-            mLoadTrackerTask.execute();
+            m_loadTrackerTask = new LoadTrackerTask();
+            m_loadTrackerTask.execute();
         } catch (Exception e)
         {
         	 Log.e("Eegeo-AR","Loading tracking data set failed");
@@ -688,7 +662,7 @@ public class BackgroundThreadActivity extends MainActivity
 	{
         // Ensure that all asynchronous operations to initialize Vuforia
         // and loading the tracker datasets do not overlap:
-        synchronized (mShutdownLock)
+        synchronized (m_shutdownLock)
         {
             
            /* // Do application deinitialization in native code:
