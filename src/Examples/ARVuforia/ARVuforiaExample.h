@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "VRCameraController.h"
+#include "ARCameraController.h"
 #include "IExample.h"
 #include "Camera.h"
 #include "Geometry.h"
@@ -24,7 +24,7 @@ namespace Examples
 
 		Eegeo::EegeoWorld& m_world;
 
-		Eegeo::VR::VRCameraController* m_pCameraController;
+		Eegeo::AR::ARCameraController* m_pCameraController;
 		Eegeo::AR::ARVuforiaController* m_pARController;
 		Examples::IARTracker& m_arTracker;
 

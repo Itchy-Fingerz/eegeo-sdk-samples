@@ -539,7 +539,6 @@ public class BackgroundThreadActivity extends MainActivity
 							if(m_running)
 							{
 								m_vrModule.updateNativeCode(deltaSeconds);
-								//updateRenderView();
 							}
 							else
 							{
