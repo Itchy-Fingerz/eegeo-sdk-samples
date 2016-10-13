@@ -29,6 +29,8 @@
 #include "EegeoWorld.h"
 #include "ScreenPropertiesProvider.h"
 #include "IStreamingVolume.h"
+#include "ARCameraController.h"
+#include "SampleMath.h"
 
 namespace Eegeo
 {
@@ -72,9 +74,10 @@ namespace Eegeo
             const int STONES_AND_CHIPS_DATASET_ID = 0;
             const int TARMAC_DATASET_ID = 1;
             int selectedDataset = STONES_AND_CHIPS_DATASET_ID;
+            Eegeo::AR::ARCameraController& m_arCameraController;
             
         public:
-            ARVuforiaController(int width, int height);
+            ARVuforiaController(int width, int height, Eegeo::AR::ARCameraController& arCameraController);
             ~ARVuforiaController();
             int InitTracker();
             void DeinitTracker();

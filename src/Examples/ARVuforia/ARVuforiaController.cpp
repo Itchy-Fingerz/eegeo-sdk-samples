@@ -5,10 +5,11 @@ namespace Eegeo
 {
     namespace AR
     {
-        ARVuforiaController::ARVuforiaController(int width, int height)
+        ARVuforiaController::ARVuforiaController(int width, int height, Eegeo::AR::ARCameraController& arCameraController)
         : currentCamera(Vuforia::CameraDevice::CAMERA_DIRECTION_BACK)
         , screenWidth(width)
         , screenHeight(height)
+        , m_arCameraController(arCameraController)
         {
         	EXAMPLE_LOG("VuforiaModule::Constructor");
         }
@@ -566,17 +567,16 @@ namespace Eegeo
                              (GLvoid*)  textures[i]->mData);
             }*/
             
-            shaderProgramID     = SampleUtils::createProgramFromBuffer(cubeMeshVertexShader,
-                                                                       cubeFragmentShader);
+//            shaderProgramID     = SampleUtils::createProgramFromBuffer(cubeMeshVertexShader, cubeFragmentShader);
+//            vertexHandle        = glGetAttribLocation(shaderProgramID,
+//                                                      "vertexPosition");
+//            textureCoordHandle  = glGetAttribLocation(shaderProgramID,
+//                                                      "vertexTexCoord");
+//            mvpMatrixHandle     = glGetUniformLocation(shaderProgramID,
+//                                                       "modelViewProjectionMatrix");
+//            texSampler2DHandle  = glGetUniformLocation(shaderProgramID, 
+//                                                       "texSampler2D");
             
-            vertexHandle        = glGetAttribLocation(shaderProgramID,
-                                                      "vertexPosition");
-            textureCoordHandle  = glGetAttribLocation(shaderProgramID,
-                                                      "vertexTexCoord");
-            mvpMatrixHandle     = glGetUniformLocation(shaderProgramID,
-                                                       "modelViewProjectionMatrix");
-            texSampler2DHandle  = glGetUniformLocation(shaderProgramID, 
-                                                       "texSampler2D");
         }
         
         void ARVuforiaController::UpdateRendering(int width, int height)
@@ -606,15 +606,62 @@ namespace Eegeo
         	eegeoWorld.Update(updateParameters);
         }
 
-        void ARVuforiaController::Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
+        void ARVuforiaController::Draw(Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
         {
-        	Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
-        	        	        					  cameraState.InterestPointEcef(),
-													  cameraState.ViewMatrix(),
-													  cameraState.ProjectionMatrix(),
-													  screenPropertyProvider.GetScreenProperties());
+            // Clear color and depth buffer
+        	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        	// Get the state from Vuforia and mark the beginning of a rendering section
+        	Vuforia::State state = Vuforia::Renderer::getInstance().begin();
 
-        	eegeoWorld.Draw(drawParameters);
+        	// Explicitly render the Video Background
+        	Vuforia::Renderer::getInstance().drawVideoBackground();
+
+        	// Did we find any trackables this frame?
+        	for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
+        	{
+        		// Get the trackable:
+        		const Vuforia::TrackableResult* result = state.getTrackableResult(tIdx);
+        		const Vuforia::Trackable& trackable = result->getTrackable();
+        		Vuforia::Matrix44F modelViewMatrix =
+        				Vuforia::Tool::convertPose2GLMatrix(result->getPose());
+        		Vuforia::Matrix44F inverseMV = SampleMath::Matrix44FInverse(modelViewMatrix);
+        		Vuforia::Matrix44F invTranspMV = SampleMath::Matrix44FTranspose(inverseMV);
+
+        		// Choose the texture based on the target name:
+        		int textureIndex;
+        		if (strcmp(trackable.getName(), "chips") == 0)
+        	    {
+        			EXAMPLE_LOG("Chips Detected");
+        	    }
+        	    else if (strcmp(trackable.getName(), "stones") == 0)
+        	    {
+        	    	EXAMPLE_LOG("Stons Detected");
+        	    }
+        	    else
+        	    {
+        	    	EXAMPLE_LOG("Default Detected");
+        	    }
+
+        	    Eegeo::m33 orientation;
+        	        Eegeo::v3 right = Eegeo::v3(invTranspMV.data[0], invTranspMV.data[1], invTranspMV.data[2]);
+        	        Eegeo::v3 up = Eegeo::v3(-invTranspMV.data[4], -invTranspMV.data[5], -invTranspMV.data[6]);
+        	        Eegeo::v3 forward = Eegeo::v3(invTranspMV.data[8], invTranspMV.data[9], invTranspMV.data[10]);
+        	        orientation.SetRow(0, right);
+        	        orientation.SetRow(1, up);
+        	        orientation.SetRow(2, forward);
+
+        	        m_arCameraController.UpdateFromPose(orientation, 0.0f);
+
+            		Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+            		        											  cameraState.InterestPointEcef(),
+            															  cameraState.ViewMatrix(),
+            															  cameraState.ProjectionMatrix(),
+            															  screenPropertyProvider.GetScreenProperties());
+
+            		eegeoWorld.Draw(drawParameters);
+        	}
+
+        	Vuforia::Renderer::getInstance().end();
         }
 
     }

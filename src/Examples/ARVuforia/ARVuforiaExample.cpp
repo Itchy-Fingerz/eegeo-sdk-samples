@@ -14,7 +14,8 @@
 #define INTERIOR_NEAR_MULTIPLIER 0.025f
 #define EXTERIOR_NEAR_MULTIPLIER 0.1f
 
-#include "Logger.h"
+
+using namespace std;
 
 namespace Examples
 {
@@ -30,7 +31,7 @@ namespace Examples
         Eegeo::m44 projectionMatrix = Eegeo::m44(pCameraController->GetRenderCamera().GetProjectionMatrix());
         m_pCameraController = new Eegeo::AR::ARCameraController(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
         m_pCameraController->GetCamera().SetProjectionMatrix(projectionMatrix);
-        m_pARController = Eegeo_NEW(Eegeo::AR::ARVuforiaController)(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
+        m_pARController = Eegeo_NEW(Eegeo::AR::ARVuforiaController)(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight(), *m_pCameraController);
         NotifyScreenPropertiesChanged(initialScreenProperties.GetScreenProperties());
     }
     
@@ -42,9 +43,9 @@ namespace Examples
     
     void ARVuforiaExample::Start()
     {
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 100);
-        m_pCameraController->SetStartLatLongAltitude(eyePosLla);
         m_arTracker.InitVuforia();
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 150);
+        m_pCameraController->SetStartLatLongAltitude(eyePosLla);
     }
     
     void ARVuforiaExample::Suspend()
@@ -55,10 +56,10 @@ namespace Examples
 
     void ARVuforiaExample::Draw()
     {
-    	m_pARController->RenderFrame();
+
     }
 
-    /*void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
+    void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
     {
     	m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, streamingVolume);
     }
@@ -66,7 +67,7 @@ namespace Examples
     void ARVuforiaExample::DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
     {
     	m_pARController->Draw(m_world, cameraState, screenPropertyProvider);
-    }*/
+    }
     
     void ARVuforiaExample::EarlyUpdate(float dt)
     {
@@ -84,6 +85,38 @@ namespace Examples
         return m_pCameraController->GetCameraState();
     }
 
+    
+    void ARVuforiaExample::SetVRCameraState(const float headTransform[])
+    {
+        
+        Eegeo::m33 orientation;
+        Eegeo::v3 right = Eegeo::v3(headTransform[0],headTransform[4],headTransform[8]);
+        Eegeo::v3 up = Eegeo::v3(headTransform[1],headTransform[5],headTransform[9]);
+        Eegeo::v3 forward = Eegeo::v3(-headTransform[2],-headTransform[6],-headTransform[10]);
+        orientation.SetRow(0, right);
+        orientation.SetRow(1, up);
+        orientation.SetRow(2, forward);
+        
+        //m_pCameraController->UpdateFromPose(orientation, 0.0f);
+        
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetCurrentCameraOrientation()
+    {
+        return m_pCameraController->GetOrientation();
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetBaseOrientation()
+    {
+        return m_pCameraController->GetCameraOrientation();
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetHeadTrackerOrientation()
+    {
+        return m_pCameraController->GetHeadTrackerOrientation();
+    }
+    
+    
 	int ARVuforiaExample::InitTracker()
 	{
 		return m_pARController->InitTracker();
