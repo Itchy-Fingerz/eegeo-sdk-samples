@@ -23,8 +23,6 @@
 #include <Vuforia/CameraCalibration.h>
 #include <Vuforia/UpdateCallback.h>
 #include <Vuforia/DataSet.h>
-#include "SampleUtils.h"
-#include "CubeShaders.h"
 
 namespace Eegeo
 {

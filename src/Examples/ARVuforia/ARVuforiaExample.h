@@ -62,14 +62,19 @@ namespace Examples
 		virtual void UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume);
 		virtual void DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
 
+        
+        const Eegeo::m33& GetCurrentCameraOrientation();
+        const Eegeo::m33& GetBaseOrientation();
+        const Eegeo::m33& GetHeadTrackerOrientation();
+        virtual void SetVRCameraState(const float headTransform[]);
+        
+        
 		virtual Eegeo::Camera::CameraState GetCurrentCameraState() const;
 		virtual bool IsVRExample(){return true;}
 
 		virtual void NotifyScreenPropertiesChanged(const Eegeo::Rendering::ScreenProperties& screenProperties);
 
 		void NotifyViewNeedsLayout() {}
-
-
 
 		void Event_TouchRotate (const AppInterface::RotateData& data) { }
 		void Event_TouchRotate_Start (const AppInterface::RotateData& data) { }

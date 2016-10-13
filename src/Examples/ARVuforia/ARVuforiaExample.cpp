@@ -11,10 +11,27 @@
 #include "EarthConstants.h"
 #include "ScreenProperties.h"
 
+#include <Vuforia/Vuforia.h>
+#include <Vuforia/CameraDevice.h>
+#include <Vuforia/Renderer.h>
+#include <Vuforia/VideoBackgroundConfig.h>
+#include <Vuforia/Trackable.h>
+#include <Vuforia/TrackableResult.h>
+#include <Vuforia/Tool.h>
+#include <Vuforia/Tracker.h>
+#include <Vuforia/TrackerManager.h>
+#include <Vuforia/ObjectTracker.h>
+#include <Vuforia/CameraCalibration.h>
+#include <Vuforia/UpdateCallback.h>
+#include <Vuforia/DataSet.h>
+
+#include "Logger.h"
+
 #define INTERIOR_NEAR_MULTIPLIER 0.025f
 #define EXTERIOR_NEAR_MULTIPLIER 0.1f
 
-#include "Logger.h"
+
+using namespace std;
 
 namespace Examples
 {
@@ -42,9 +59,9 @@ namespace Examples
     
     void ARVuforiaExample::Start()
     {
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 35);
-        m_pCameraController->SetStartLatLongAltitude(eyePosLla);
         m_arTracker.InitVuforia();
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 150);
+        m_pCameraController->SetStartLatLongAltitude(eyePosLla);
     }
     
     void ARVuforiaExample::Suspend()
@@ -55,17 +72,69 @@ namespace Examples
 
     void ARVuforiaExample::Draw()
     {
-    	m_pARController->RenderFrame();
+        
+        
+        
     }
 
     void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
     {
-    	//m_pARController->Update(dt, GetCurrentCameraState(), m_world);
+        
+        Eegeo::EegeoUpdateParameters updateParameters(dt,
+                                                      cameraState.LocationEcef(),
+                                                      cameraState.InterestPointEcef(),
+                                                      cameraState.ViewMatrix(),
+                                                      cameraState.ProjectionMatrix(),
+                                                      streamingVolume,
+                                                      screenPropertyProvider.GetScreenProperties());
+        world.Update(updateParameters);
+        
+
     }
 
     void ARVuforiaExample::DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
     {
-    	//m_pARController->Draw(m_world, m_vrCameraState);
+        
+        // Get the state from Vuforia and mark the beginning of a rendering section
+        Vuforia::State state = Vuforia::Renderer::getInstance().begin();
+        
+        // Did we find any trackables this frame?
+        for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
+        {
+            // Get the trackable:
+            const Vuforia::TrackableResult* result = state.getTrackableResult(tIdx);
+            const Vuforia::Trackable& trackable = result->getTrackable();
+            Vuforia::Matrix44F modelViewMatrix =
+            Vuforia::Tool::convertPose2GLMatrix(result->getPose());
+            
+            // Choose the texture based on the target name:
+            int textureIndex;
+            if (strcmp(trackable.getName(), "chips") == 0)
+            {
+                EXAMPLE_LOG("Chips Detected");
+            }
+            else if (strcmp(trackable.getName(), "stones") == 0)
+            {
+                EXAMPLE_LOG("Stons Detected");
+            }
+            else
+            {
+                EXAMPLE_LOG("Default Detected");
+            }
+        }
+        
+        // Explicitly render the Video Background
+        Vuforia::Renderer::getInstance().drawVideoBackground();
+        
+        Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+                                                  cameraState.InterestPointEcef(),
+                                                  cameraState.ViewMatrix(),
+                                                  cameraState.ProjectionMatrix(),
+                                                  screenPropertyProvider.GetScreenProperties());
+        
+        world.Draw(drawParameters);
+        
+        Vuforia::Renderer::getInstance().end();
     }
     
     void ARVuforiaExample::EarlyUpdate(float dt)
@@ -84,6 +153,38 @@ namespace Examples
         return m_pCameraController->GetCameraState();
     }
 
+    
+    void ARVuforiaExample::SetVRCameraState(const float headTransform[])
+    {
+        
+        Eegeo::m33 orientation;
+        Eegeo::v3 right = Eegeo::v3(headTransform[0],headTransform[4],headTransform[8]);
+        Eegeo::v3 up = Eegeo::v3(headTransform[1],headTransform[5],headTransform[9]);
+        Eegeo::v3 forward = Eegeo::v3(-headTransform[2],-headTransform[6],-headTransform[10]);
+        orientation.SetRow(0, right);
+        orientation.SetRow(1, up);
+        orientation.SetRow(2, forward);
+        
+        m_pCameraController->UpdateFromPose(orientation, 0.0f);
+        
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetCurrentCameraOrientation()
+    {
+        return m_pCameraController->GetOrientation();
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetBaseOrientation()
+    {
+        return m_pCameraController->GetCameraOrientation();
+    }
+    
+    const Eegeo::m33& ARVuforiaExample::GetHeadTrackerOrientation()
+    {
+        return m_pCameraController->GetHeadTrackerOrientation();
+    }
+    
+    
 	int ARVuforiaExample::InitTracker()
 	{
 		return m_pARController->InitTracker();

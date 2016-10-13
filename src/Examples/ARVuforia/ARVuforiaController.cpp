@@ -566,17 +566,16 @@ namespace Eegeo
                              (GLvoid*)  textures[i]->mData);
             }*/
             
-            shaderProgramID     = SampleUtils::createProgramFromBuffer(cubeMeshVertexShader,
-                                                                       cubeFragmentShader);
+//            shaderProgramID     = SampleUtils::createProgramFromBuffer(cubeMeshVertexShader, cubeFragmentShader);
+//            vertexHandle        = glGetAttribLocation(shaderProgramID,
+//                                                      "vertexPosition");
+//            textureCoordHandle  = glGetAttribLocation(shaderProgramID,
+//                                                      "vertexTexCoord");
+//            mvpMatrixHandle     = glGetUniformLocation(shaderProgramID,
+//                                                       "modelViewProjectionMatrix");
+//            texSampler2DHandle  = glGetUniformLocation(shaderProgramID, 
+//                                                       "texSampler2D");
             
-            vertexHandle        = glGetAttribLocation(shaderProgramID,
-                                                      "vertexPosition");
-            textureCoordHandle  = glGetAttribLocation(shaderProgramID,
-                                                      "vertexTexCoord");
-            mvpMatrixHandle     = glGetUniformLocation(shaderProgramID,
-                                                       "modelViewProjectionMatrix");
-            texSampler2DHandle  = glGetUniformLocation(shaderProgramID, 
-                                                       "texSampler2D");
         }
         
         void ARVuforiaController::UpdateRendering(int width, int height)
