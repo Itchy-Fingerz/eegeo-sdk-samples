@@ -594,5 +594,28 @@ namespace Eegeo
             SetProjectionMatrix();
         }
 
+        void ARVuforiaController::Update(float dt, const Eegeo::Camera::CameraState cameraState, Eegeo::EegeoWorld& eegeoWorld, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
+        {
+        	Eegeo::EegeoUpdateParameters updateParameters(dt,
+        	        		    						  cameraState.LocationEcef(),
+														  cameraState.InterestPointEcef(),
+														  cameraState.ViewMatrix(),
+														  cameraState.ProjectionMatrix(),
+														  streamingVolume,
+														  screenPropertyProvider.GetScreenProperties());
+        	eegeoWorld.Update(updateParameters);
+        }
+
+        void ARVuforiaController::Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
+        {
+        	Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
+        	        	        					  cameraState.InterestPointEcef(),
+													  cameraState.ViewMatrix(),
+													  cameraState.ProjectionMatrix(),
+													  screenPropertyProvider.GetScreenProperties());
+
+        	eegeoWorld.Draw(drawParameters);
+        }
+
     }
 }

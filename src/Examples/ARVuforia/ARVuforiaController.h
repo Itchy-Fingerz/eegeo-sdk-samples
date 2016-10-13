@@ -25,6 +25,10 @@
 #include <Vuforia/DataSet.h>
 #include "SampleUtils.h"
 #include "CubeShaders.h"
+#include "CameraState.h"
+#include "EegeoWorld.h"
+#include "ScreenPropertiesProvider.h"
+#include "IStreamingVolume.h"
 
 namespace Eegeo
 {
@@ -88,6 +92,8 @@ namespace Eegeo
             bool StopExtendedTracking();
             void InitRendering();
             void UpdateRendering(int width, int height);
+            void Update(float dt, const Eegeo::Camera::CameraState cameraState, Eegeo::EegeoWorld& eegeoWorld, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume);
+            void Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
         };
 
     }

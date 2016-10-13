@@ -59,8 +59,8 @@ namespace Examples
 		virtual void InitVuforiaRendering();
 		virtual void UpdateVuforiaRendering(int width, int height);
 
-		virtual void UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume);
-		virtual void DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
+		//virtual void UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume);
+		//virtual void DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
 
 		virtual Eegeo::Camera::CameraState GetCurrentCameraState() const;
 		virtual bool IsVRExample(){return true;}

@@ -42,7 +42,7 @@ namespace Examples
     
     void ARVuforiaExample::Start()
     {
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 35);
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 100);
         m_pCameraController->SetStartLatLongAltitude(eyePosLla);
         m_arTracker.InitVuforia();
     }
@@ -58,15 +58,15 @@ namespace Examples
     	m_pARController->RenderFrame();
     }
 
-    void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
+    /*void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
     {
-    	//m_pARController->Update(dt, GetCurrentCameraState(), m_world);
+    	m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, streamingVolume);
     }
 
     void ARVuforiaExample::DrawWorld(Eegeo::EegeoWorld& world,  Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider)
     {
-    	//m_pARController->Draw(m_world, m_vrCameraState);
-    }
+    	m_pARController->Draw(m_world, cameraState, screenPropertyProvider);
+    }*/
     
     void ARVuforiaExample::EarlyUpdate(float dt)
     {
