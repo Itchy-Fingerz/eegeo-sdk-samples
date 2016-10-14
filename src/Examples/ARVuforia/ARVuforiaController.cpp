@@ -624,8 +624,8 @@ namespace Eegeo
         		const Vuforia::Trackable& trackable = result->getTrackable();
         		Vuforia::Matrix44F modelViewMatrix =
         				Vuforia::Tool::convertPose2GLMatrix(result->getPose());
-        		Vuforia::Matrix44F inverseMV = SampleMath::Matrix44FInverse(modelViewMatrix);
-        		Vuforia::Matrix44F invTranspMV = SampleMath::Matrix44FTranspose(inverseMV);
+        		//Vuforia::Matrix44F inverseMV = SampleMath::Matrix44FInverse(modelViewMatrix);
+        		//Vuforia::Matrix44F invTranspMV = SampleMath::Matrix44FTranspose(inverseMV);
 
         		// Choose the texture based on the target name:
         		int textureIndex;
@@ -643,9 +643,15 @@ namespace Eegeo
         	    }
 
         	    Eegeo::m33 orientation;
-        	        Eegeo::v3 right = Eegeo::v3(invTranspMV.data[0], invTranspMV.data[1], invTranspMV.data[2]);
-        	        Eegeo::v3 up = Eegeo::v3(-invTranspMV.data[4], -invTranspMV.data[5], -invTranspMV.data[6]);
-        	        Eegeo::v3 forward = Eegeo::v3(invTranspMV.data[8], invTranspMV.data[9], invTranspMV.data[10]);
+        	    /*Eegeo::v3 right = Eegeo::v3(invTranspMV.data[0], invTranspMV.data[1], invTranspMV.data[2]);
+        	    Eegeo::v3 up = Eegeo::v3(-invTranspMV.data[4], -invTranspMV.data[5], -invTranspMV.data[6]);
+        	    Eegeo::v3 forward = Eegeo::v3(invTranspMV.data[8], invTranspMV.data[9], invTranspMV.data[10]);*/
+
+        	    Eegeo::v3 right = Eegeo::v3(modelViewMatrix.data[0], modelViewMatrix.data[1], modelViewMatrix.data[2]);
+        	    Eegeo::v3 up = Eegeo::v3(-modelViewMatrix.data[4], -modelViewMatrix.data[5], -modelViewMatrix.data[6]);
+        	    Eegeo::v3 forward = Eegeo::v3(modelViewMatrix.data[8], modelViewMatrix.data[9], modelViewMatrix.data[10]);
+
+
         	        orientation.SetRow(0, right);
         	        orientation.SetRow(1, up);
         	        orientation.SetRow(2, forward);
