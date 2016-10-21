@@ -47,21 +47,19 @@ namespace Eegeo
             return m_currentOrientation;
         }
         
+        void ARCameraController::LookAt(const dv3& ecefPosition)
+        {
+            
+        }
+        
         void ARCameraController::UpdateFromPose(const Eegeo::m33& orientation, float eyeDistance)
         {
-            m_headTrackerOrientation = orientation;
-            m33 orientationMatrix;
-            m33::Mul(orientationMatrix, m_orientation, orientation);
-            
-            v3 eyeOffsetModified = dv3::ToSingle(m_ecefPosition.Norm()*eyeDistance);
-            v3 rotatedEyeOffset = v3::Mul(eyeOffsetModified, orientationMatrix);
-
-            m_currentOrientation = Eegeo::m33(orientationMatrix);
+//            m33 orientationMatrix;
+//            m33::Mul(orientationMatrix, m_orientation, orientation);
+            m_pRenderCamera->SetOrientationMatrix(orientation);
             
             float near, far;
             GetNearFarPlaneDistances(near,far);
-            m_pRenderCamera->SetOrientationMatrix(orientationMatrix);
-            m_pRenderCamera->SetEcefLocation(dv3(m_ecefPosition.x + rotatedEyeOffset.x, m_ecefPosition.y + rotatedEyeOffset.y, m_ecefPosition.z + rotatedEyeOffset.z));
             m_pRenderCamera->SetProjection(0.7f, near*m_nearMultiplier, far);
 
         }
@@ -87,12 +85,7 @@ namespace Eegeo
             m_pRenderCamera->SetEcefLocation(m_ecefPosition);
         }
         
-        void ARCameraController::Update(float dt)
-        {
-            
-        }
-
-
+        void ARCameraController::Update(float dt){}
 
         void ARCameraController::GetNearFarPlaneDistances(float& out_near, float& out_far)
         {

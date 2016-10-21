@@ -44,7 +44,7 @@ namespace Examples
     void ARVuforiaExample::Start()
     {
         m_arTracker.InitVuforia();
-        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 150);
+        Eegeo::Space::LatLongAltitude eyePosLla = Eegeo::Space::LatLongAltitude::FromDegrees(40.763647, -73.973468, 0);
         m_pCameraController->SetStartLatLongAltitude(eyePosLla);
     }
     
@@ -97,7 +97,7 @@ namespace Examples
         orientation.SetRow(1, up);
         orientation.SetRow(2, forward);
         
-        //m_pCameraController->UpdateFromPose(orientation, 0.0f);
+//        m_pCameraController->UpdateFromPose(orientation, 0.0f);
         
     }
     

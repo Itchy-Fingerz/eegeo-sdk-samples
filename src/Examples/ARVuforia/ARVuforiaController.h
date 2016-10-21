@@ -76,9 +76,13 @@ namespace Eegeo
             int selectedDataset = STONES_AND_CHIPS_DATASET_ID;
             Eegeo::AR::ARCameraController& m_arCameraController;
             
+            Eegeo::dv3 m_interstPoint;
+            
         public:
+            
             ARVuforiaController(int width, int height, Eegeo::AR::ARCameraController& arCameraController);
             ~ARVuforiaController();
+            
             int InitTracker();
             void DeinitTracker();
             int LoadTrackerData();
@@ -96,6 +100,9 @@ namespace Eegeo
             void InitRendering();
             void UpdateRendering(int width, int height);
             void Update(float dt, const Eegeo::Camera::CameraState cameraState, Eegeo::EegeoWorld& eegeoWorld, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume);
+            
+            Eegeo::m33 GetLookAtOrientationMatrix(const Eegeo::v3& targetPosition, const Eegeo::v3& objectPosition, Eegeo::v3 up);
+            
             void Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
         };
 

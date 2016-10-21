@@ -35,7 +35,6 @@ public class BackgroundThreadActivity extends MainActivity
 
 	static {
 		System.loadLibrary("eegeo-sdk-samples");
-		System.loadLibrary("Vuforia");
 	}
 
     public void storeScreenDimensions()

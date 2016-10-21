@@ -45,6 +45,7 @@ namespace Eegeo
             
             void SetProjectionMatrix(Eegeo::m44& projection);
             void UpdateFromPose(const Eegeo::m33& orientation, float eyeDistance);
+            void LookAt(const dv3& ecefPosition);
             void SetEcefPosition(const Eegeo::dv3& ecef);
             void SetStartLatLongAltitude(const Eegeo::Space::LatLongAltitude& eyePos);
             
