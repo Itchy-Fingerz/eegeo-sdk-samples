@@ -54,8 +54,6 @@ namespace Eegeo
         
         void ARCameraController::UpdateFromPose(const Eegeo::m33& orientation, float eyeDistance)
         {
-//            m33 orientationMatrix;
-//            m33::Mul(orientationMatrix, m_orientation, orientation);
             m_pRenderCamera->SetOrientationMatrix(orientation);
             
             float near, far;
