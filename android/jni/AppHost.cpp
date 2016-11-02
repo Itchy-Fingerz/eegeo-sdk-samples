@@ -231,6 +231,32 @@ void AppHost::MagnetTriggered(){
     m_pApp->MagnetTriggered();
 }
 
+int AppHost::InitTracker()
+{
+	return m_pApp->InitTracker();
+}
+
+int AppHost::LoadTrackerData()
+{
+	return m_pApp->LoadTrackerData();
+}
+
+void AppHost::OnVuforiaInitializedNative()
+{
+	if(m_pApp != NULL)
+	{
+		m_pApp->OnVuforiaInitializedNative();
+	}
+}
+
+void AppHost::UpdateVuforiaRendering(int width, int height)
+{
+	if(m_pApp != NULL)
+	{
+		m_pApp->UpdateVuforiaRendering(width, height);
+	}
+}
+
 void AppHost::Update(float dt, const float headTransform[])
 {
 	m_pInputProcessor->Update(dt);
@@ -248,7 +274,9 @@ void AppHost::ConfigureExamples(const Eegeo::Rendering::ScreenProperties& screen
 
 	m_pVRModeTracker = new Examples::AndroidVRModeTracker(m_nativeState);
 
-	m_pApp = new ExampleApp(m_pWorld, deviceSpecs, *m_pAndroidExampleControllerView, *m_pVRModeTracker, screenProperties, *m_pCollisionVisualizationModule, *m_pBuildingFootprintsModule);
+	m_pARTracker = new Examples::AndroidARTracker(m_nativeState);
+
+	m_pApp = new ExampleApp(m_pWorld, deviceSpecs, *m_pAndroidExampleControllerView, *m_pVRModeTracker, *m_pARTracker, screenProperties, *m_pCollisionVisualizationModule, *m_pBuildingFootprintsModule);
 
 	RegisterAndroidSpecificExamples();
 
@@ -320,6 +348,7 @@ void AppHost::DestroyExamples()
 	delete m_pAndroidRouteSimulationExampleViewFactory;
 
 	delete m_pVRModeTracker;
+	delete m_pARTracker;
 	delete m_pAndroidExampleControllerView;
 }
 

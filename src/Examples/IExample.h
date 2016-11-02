@@ -37,6 +37,11 @@ namespace Examples
         virtual void SetVRCameraState(const float headTransform[]) = 0;
         virtual void UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume) = 0;
         virtual void DrawWorld(Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider) = 0;
+        virtual int InitTracker(){ return 0;};
+        virtual int LoadTrackerData(){return 0;};
+        virtual void OnVuforiaInitializedNative(){};
+        virtual void InitVuforiaRendering(){};
+        virtual void UpdateVuforiaRendering(int width, int height){};
 
         virtual void NotifyViewNeedsLayout() = 0;
         

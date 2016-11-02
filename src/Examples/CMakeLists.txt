@@ -60,5 +60,5 @@ include(../src/Examples/TrafficCongestion/CMakeLists.txt)
 include(../src/Examples/UI/CMakeLists.txt)
 include(../src/Examples/VRCardboard/CMakeLists.txt)
 include(../src/Examples/WebRequest/CMakeLists.txt)
-
+include(../src/Examples/ARVuforia/CMakeLists.txt)
 include(../src/Examples/Interiors/CMakeLists.txt)

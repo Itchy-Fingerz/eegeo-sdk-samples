@@ -58,11 +58,17 @@ LOCAL_EXPORT_C_INCLUDES := ./libs/eegeo/jpeg-turbo
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := vuforia-lib
+LOCAL_SRC_FILES := ../libs/vuforia/libVuforia.so
+LOCAL_EXPORT_C_INCLUDES := ./libs/vuforia/include 
+include $(PREBUILT_SHARED_LIBRARY)
 
+include $(CLEAR_VARS)
 LOCAL_MODULE := eegeo-sdk-samples
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv2 -lz -lm
 LOCAL_LDLIBS += -fuse-ld=bfd -Wl,--stub-group-size=1000000
 LOCAL_STATIC_LIBRARIES := eegeo-sdk-lib png-lib curl-lib uv-lib ssl-lib crypto-lib http-parser-lib jpeg-lib turbojpeg-lib
+LOCAL_SHARED_LIBRARIES := vuforia-lib
 
 LOCAL_CPPFLAGS += -std=c++11
 
@@ -92,7 +98,7 @@ else
     shared_example_cpp_files := $(shell cd jni\..\..\src\ && dir /a-d /b /s *.cpp)
 	LOCAL_SRC_FILES += $(shared_example_cpp_files:$(LOCAL_PATH)/%=%)
 	
-	platformincludes := $(shell dir .\libs\platform /ad-h /s /b)
+	platformincludes := $(shell dir .\libs/eegeo/platform /ad-h /s /b)
 	LOCAL_C_INCLUDES := $(platformincludes:$(LOCAL_PATH)/%=%)
 	LOCAL_C_INCLUDES += ./libs/eegeo/platform 
 

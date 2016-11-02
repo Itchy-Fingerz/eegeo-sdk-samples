@@ -100,6 +100,40 @@ void AppRunner::MagnetTriggered()
     }
 }
 
+int AppRunner::InitTracker()
+{
+	if(m_pAppHost != NULL)
+	{
+		return m_pAppHost->InitTracker();
+	}
+	return 0;
+}
+
+int AppRunner::LoadTrackerData()
+{
+	if(m_pAppHost != NULL)
+	{
+		return m_pAppHost->LoadTrackerData();
+	}
+	return 0;
+}
+
+void AppRunner::OnVuforiaInitializedNative()
+{
+	if(m_pAppHost != NULL)
+	{
+		m_pAppHost->OnVuforiaInitializedNative();
+	}
+}
+
+void AppRunner::UpdateVuforiaRendering(int width, int height)
+{
+	if(m_pAppHost != NULL)
+	{
+		m_pAppHost->UpdateVuforiaRendering(width, height);
+	}
+}
+
 void AppRunner::ReleaseDisplay()
 {
 	if(m_displayService.IsDisplayAvailable())

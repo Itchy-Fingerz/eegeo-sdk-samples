@@ -61,6 +61,7 @@
 #include "InteriorsCameraController.h"
 #include "InteriorSelectionModel.h"
 #include "VRCardboardExampleFactory.h"
+#include "ARVuforiaExampleFactory.h"
 #include "Types.h"
 
 namespace
@@ -97,6 +98,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 		const Eegeo::Config::DeviceSpec& deviceSpecs,
 		Examples::IExampleControllerView& view,
 		Examples::IVRModeTracker& vrModeTracker,
+		Examples::IARTracker& arTracker,
 		const Eegeo::Rendering::ScreenProperties& screenProperties,
 		Eegeo::Modules::CollisionVisualizationModule& collisionVisualizationModule,
 		Eegeo::Modules::BuildingFootprintsModule& buildingFootprintsModule)
@@ -176,7 +178,6 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
     
     m_pInteriorModule->UpdateScreenProperties(screenProperties);
 
-
     //register all generic examples
     m_pExampleController->RegisterCameraExample<Examples::BillboardedSpriteExampleFactory>();
     m_pExampleController->RegisterCameraExample<Examples::BuildingHighlightExampleFactory>();
@@ -225,6 +226,7 @@ ExampleApp::ExampleApp(Eegeo::EegeoWorld* pWorld,
 	#ifdef CARDBOARD
     m_pExampleController->RegisterScreenPropertiesProviderVRExample<Examples::VRCardboardExampleFactory>(m_screenPropertiesProvider, deviceSpecs, vrModeTracker);
 	#endif
+    m_pExampleController->RegisterScreenPropertiesProviderARExample<Examples::ARVuforiaExampleFactory>(m_screenPropertiesProvider, arTracker);
 }
 
 ExampleApp::~ExampleApp()
@@ -329,6 +331,26 @@ void ExampleApp::UpdateCardboardProfile(const float cardboardProfile[])
 void ExampleApp::MagnetTriggered()
 {
 
+}
+
+int ExampleApp::InitTracker()
+{
+	return m_pExampleController->InitTracker();
+}
+
+int ExampleApp::LoadTrackerData()
+{
+	return m_pExampleController->LoadTrackerData();
+}
+
+void ExampleApp::OnVuforiaInitializedNative()
+{
+	m_pExampleController->OnVuforiaInitializedNative();
+}
+
+void ExampleApp::UpdateVuforiaRendering(int width, int height)
+{
+	m_pExampleController->UpdateVuforiaRendering(width, height);
 }
 
 void ExampleApp::Event_TouchRotate(const AppInterface::RotateData& data)

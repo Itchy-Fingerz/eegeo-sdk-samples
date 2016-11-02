@@ -15,4 +15,8 @@ public class NativeJniCalls
 	public static native void updateNativeCode(float deltaTimeSeconds, float[] headTransform);
 	public static native void updateCardboardProfile(float[] profileParams);
 	public static native void magnetTriggered();
+	public static native int initTracker();
+	public static native int loadTrackerData();
+	public static native void onVuforiaInitializedNative();
+	public static native void updateVuforiaRendering(int width, int height);
 }

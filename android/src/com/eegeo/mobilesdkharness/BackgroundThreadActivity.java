@@ -11,9 +11,10 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.SurfaceHolder;
-import android.app.Activity;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.vuforia.Vuforia;
 
 
 public class BackgroundThreadActivity extends MainActivity
@@ -25,10 +26,34 @@ public class BackgroundThreadActivity extends MainActivity
 	private Thread m_updater;
 	private boolean m_isInVRMode;
 	private VRModule m_vrModule;
+	private ARModule m_arModule;
+	
+    public static View m_loadingDialogContainer;
+    private int m_screenWidth = 0;
+    private int m_screenHeight = 0;
+	
 
 	static {
 		System.loadLibrary("eegeo-sdk-samples");
 	}
+
+    public void storeScreenDimensions()
+    {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        m_screenWidth = metrics.widthPixels;
+        m_screenHeight = metrics.heightPixels;
+    }
+    
+    public int getScreenWidth()
+    {
+    	return m_screenWidth;
+    }
+    
+    public int getScreenHeight()
+    {
+    	return m_screenHeight;
+    }
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -42,9 +67,13 @@ public class BackgroundThreadActivity extends MainActivity
 		m_surfaceView.setActivity(this);
 
 		m_vrModule = new VRModule(this);
+		m_arModule = new ARModule(this);
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		final float dpi = dm.ydpi;
 		final Activity activity = this;
+		
+		m_loadingDialogContainer = findViewById(R.id.loading_indicator);
+		initApplication();
 
 		m_threadedRunner = new ThreadedUpdateRunner(false);
 		m_updater = new Thread(m_threadedRunner);
@@ -66,8 +95,10 @@ public class BackgroundThreadActivity extends MainActivity
 		});
 	}
 	
-	@SuppressLint("InlinedApi") 
-	private void setScreenSettings(){
+
+	@SuppressLint("InlinedApi")
+	private void setScreenSettings()
+	{
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		if(android.os.Build.VERSION.SDK_INT<16)
@@ -106,6 +137,8 @@ public class BackgroundThreadActivity extends MainActivity
 	protected void onResume()
 	{
 		super.onResume();
+		// Vuforia-specific resume operation
+        Vuforia.onResume();
 		
 		setScreenSettings();
 		runOnNativeThread(new Runnable()
@@ -137,6 +170,9 @@ public class BackgroundThreadActivity extends MainActivity
 				NativeJniCalls.pauseNativeCode();
 			}
 		});
+        
+        // Vuforia-specific pause operation
+        Vuforia.onPause();
 	}
 
 	@Override
@@ -157,12 +193,15 @@ public class BackgroundThreadActivity extends MainActivity
 
 		m_threadedRunner.blockUntilThreadHasDestroyedPlatform();
 		m_nativeAppWindowPtr = 0;
+		m_arModule.destroy();
 	}
 	
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
-		//nothing to do
+        // Call Vuforia function to (re)initialize rendering after first use
+        // or after OpenGL ES context was lost (e.g. after onPause/onResume):
+        Vuforia.onSurfaceCreated();
 	}
 
 	@Override
@@ -179,8 +218,9 @@ public class BackgroundThreadActivity extends MainActivity
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+	public void surfaceChanged(SurfaceHolder holder, int format, final int width, final int height)
 	{
+		Vuforia.onSurfaceChanged(width, height);
 		final SurfaceHolder h = holder;
 		
 		runOnNativeThread(new Runnable()
@@ -190,6 +230,7 @@ public class BackgroundThreadActivity extends MainActivity
 				m_surfaceHolder = h;
 				if(m_surfaceHolder != null) 
 				{
+					NativeJniCalls.updateVuforiaRendering(width, height);
 					NativeJniCalls.setNativeSurface(m_surfaceHolder.getSurface());
 					m_threadedRunner.start();
 					NativeJniCalls.updateCardboardProfile(m_vrModule.getUpdatedCardboardProfile());
@@ -283,4 +324,29 @@ public class BackgroundThreadActivity extends MainActivity
 			}
 		}
 	}
+	
+    private void initApplication()
+    {
+        storeScreenDimensions();
+        
+        // As long as this window is visible to the user, keep the device's
+        // screen turned on and bright:
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+	@Override
+	public void initVuforia()
+	{
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		m_arModule.initVuforia();
+	}
+
+	@Override
+	public void deInitVuforia()
+	{
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED );
+		m_arModule.deInitVuforia();
+	}
+	
 }

@@ -37,6 +37,7 @@
 #include "AndroidRoutingServiceExampleViewFactory.h"
 #include "ExampleCameraJumpController.h"
 #include "AndroidVRModeTracker.h"
+#include "AndroidARTracker.h"
 
 class AppHost : protected Eegeo::NonCopyable
 {
@@ -64,6 +65,10 @@ public:
 
 	void UpdateCardboardProfile(const float cardboardProfile[]);
 	void MagnetTriggered();
+	int InitTracker();
+	int LoadTrackerData();
+	void OnVuforiaInitializedNative();
+	void UpdateVuforiaRendering(int width, int height);
 	void SetEnvironmentFlatten(bool flattenState);
 	void SetCameraLocation(const Eegeo::Space::LatLongAltitude& interestPoint, double distanceToInterestPoint, double orientationInDegrees);
 	void SendCameraLocationToGUI();
@@ -91,6 +96,7 @@ private:
 	ExampleApp* m_pApp;
 	Examples::AndroidExampleControllerView* m_pAndroidExampleControllerView;
 	Examples::AndroidVRModeTracker* m_pVRModeTracker;
+	Examples::AndroidARTracker* m_pARTracker;
 	Examples::AndroidRouteMatchingExampleViewFactory* m_pAndroidRouteMatchingExampleViewFactory;
 	Examples::AndroidRouteSimulationExampleViewFactory* m_pAndroidRouteSimulationExampleViewFactory;
 	Examples::AndroidRoutingServiceExampleViewFactory* m_pAndroidRoutingServiceExampleViewFactory;
