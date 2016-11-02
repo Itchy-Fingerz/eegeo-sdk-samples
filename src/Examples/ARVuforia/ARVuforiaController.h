@@ -28,6 +28,7 @@
 #include "CameraState.h"
 #include "EegeoWorld.h"
 #include "ScreenPropertiesProvider.h"
+#include "CameraFrustumStreamingVolume.h"
 #include "IStreamingVolume.h"
 #include "ARCameraController.h"
 #include "SampleMath.h"
@@ -39,29 +40,30 @@ namespace Eegeo
         class ARVuforiaController
         {
         private:
-            // Textures:
-            //int textureCount                = 0;
-            //Texture** textures              = 0;
+            
+            
+            Eegeo::dv3 m_targetPosition;
+            Eegeo::dv3 m_objectPosition;
+            bool m_positionObtained;
+            
+            bool m_startedPrecaching;
+            bool m_precacheComplete;
+            
+            Eegeo::EegeoWorld& m_world;
+            
             
             unsigned int shaderProgramID    = 0;
             GLint vertexHandle              = 0;
             GLint textureCoordHandle        = 0;
             GLint mvpMatrixHandle           = 0;
             GLint texSampler2DHandle        = 0;
-
-            // Screen dimensions:
+            
             int screenWidth                 = 0;
             int screenHeight                = 0;
             
-            // The projection matrix used for rendering virtual objects:
             Vuforia::Matrix44F projectionMatrix;
             
-            // The viewport used for rendering virtual objects
             GLfloat viewport[4];
-            
-            // Constants:
-            //static const float kObjectScale          = 3.f;
-            //static const float kBuildingsObjectScale = 12.f;
             
             Vuforia::DataSet* dataSetStonesAndChips  = 0;
             Vuforia::DataSet* dataSetTarmac          = 0;
@@ -78,9 +80,15 @@ namespace Eegeo
             
             Eegeo::dv3 m_interstPoint;
             
+            Eegeo::Web::PrecacheService& m_precacheService;
         public:
             
-            ARVuforiaController(int width, int height, Eegeo::AR::ARCameraController& arCameraController);
+            ARVuforiaController(int width,
+                                int height,
+                                Eegeo::Modules::Map::MapModule& mapModule,
+                                Eegeo::Web::PrecacheService& precacheService,
+                                Eegeo::EegeoWorld& world,
+                                Eegeo::AR::ARCameraController& arCameraController);
             ~ARVuforiaController();
             
             int InitTracker();

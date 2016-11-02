@@ -18,6 +18,7 @@
 namespace Examples
 {
 
+    	class SphereVolume;
 	class ARVuforiaExample : public IExample, Eegeo::NonCopyable
 	{
 	private:
@@ -27,13 +28,21 @@ namespace Examples
 		Eegeo::AR::ARCameraController* m_pCameraController;
 		Eegeo::AR::ARVuforiaController* m_pARController;
 		Examples::IARTracker& m_arTracker;
-
+        
+        bool m_startedPrecaching;
+        bool m_precacheComplete;
+        
+        Eegeo::Web::PrecacheService& m_precacheService;
+        SphereVolume* m_sphereVolume;
+        
 	public:
 
-		ARVuforiaExample(Eegeo::EegeoWorld& eegeoWorld,
-						   Eegeo::Camera::GlobeCamera::GlobeCameraController* pCameraController,
-						   const IScreenPropertiesProvider& initialScreenProperties,
-						   Examples::IARTracker& arTracker);
+        ARVuforiaExample(Eegeo::EegeoWorld& eegeoWorld,
+                            Eegeo::Web::PrecacheService& precacheService,
+						   	Eegeo::Camera::GlobeCamera::GlobeCameraController* pCameraController,
+						   	const IScreenPropertiesProvider& initialScreenProperties,
+                           				Eegeo::Modules::Map::MapModule& mapModule,
+						   	Examples::IARTracker& arTracker);
 
 		virtual ~ARVuforiaExample();
 
@@ -49,7 +58,7 @@ namespace Examples
 		void Start();
 		void OrientationUpdate();
 		void EarlyUpdate(float dt);
-		void Update(float dt) { }
+        	void Update(float dt);
 		void PreWorldDraw() { }
 		void Draw();
 		void Suspend();

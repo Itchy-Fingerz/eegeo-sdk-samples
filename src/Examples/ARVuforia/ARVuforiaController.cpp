@@ -1,4 +1,6 @@
 // Copyright eeGeo Ltd (2012-2016), All Rights Reserved
+#include "CameraFrustumStreamingVolume.h"
+#include "StreamingVolumeController.h"
 #include "ARVuforiaController.h"
 #include "EcefTangentBasis.h"
 #include "CameraHelpers.h"
@@ -7,16 +9,31 @@ namespace Eegeo
 {
     namespace AR
     {
-        ARVuforiaController::ARVuforiaController(int width, int height, Eegeo::AR::ARCameraController& arCameraController)
+    
+        ARVuforiaController::ARVuforiaController(int width
+                                                 , int height
+                                                 , Eegeo::Modules::Map::MapModule& mapModule
+                                                 , Eegeo::Web::PrecacheService& precacheService
+                                                 , Eegeo::EegeoWorld& world
+                                                 , Eegeo::AR::ARCameraController& arCameraController
+                                                 )
         : currentCamera(Vuforia::CameraDevice::CAMERA_DIRECTION_BACK)
         , screenWidth(width)
         , screenHeight(height)
+        , m_startedPrecaching(false)
+        , m_precacheComplete(false)
+        , m_positionObtained(false)
+        , m_world(world)
+        , m_precacheService(precacheService)
         , m_arCameraController(arCameraController)
         {
+            
         }
         
         ARVuforiaController::~ARVuforiaController()
         {
+            
+            
             StopCamera();
             
         	DeinitApplicationNative();
@@ -38,7 +55,6 @@ namespace Eegeo
         
         void ARVuforiaController::DeinitTracker()
         {
-            
             // Deinit the object tracker:
             Vuforia::TrackerManager& trackerManager = Vuforia::TrackerManager::getInstance();
             trackerManager.deinitTracker(Vuforia::ObjectTracker::getClassType());
@@ -46,7 +62,6 @@ namespace Eegeo
         
         int ARVuforiaController::LoadTrackerData()
         {
-            
             // Get the object tracker:
             Vuforia::TrackerManager& trackerManager = Vuforia::TrackerManager::getInstance();
             Vuforia::ObjectTracker* objectTracker = static_cast<Vuforia::ObjectTracker*>(trackerManager.getTracker(Vuforia::ObjectTracker::getClassType()));
@@ -278,17 +293,100 @@ namespace Eegeo
             // Setting up the projection matrix
             SetProjectionMatrix();
         }
+        
 
         void ARVuforiaController::Update(float dt, const Eegeo::Camera::CameraState cameraState, Eegeo::EegeoWorld& eegeoWorld, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
         {
-        	Eegeo::EegeoUpdateParameters updateParameters(dt,
-        	        		    						  cameraState.LocationEcef(),
-														  cameraState.InterestPointEcef(),
-														  cameraState.ViewMatrix(),
-														  cameraState.ProjectionMatrix(),
-														  streamingVolume,
-														  screenPropertyProvider.GetScreenProperties());
-        	eegeoWorld.Update(updateParameters);
+            
+            Vuforia::State state = Vuforia::Renderer::getInstance().begin();
+            
+            for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
+            {
+                
+                Eegeo::Space::EcefTangentBasis basis;
+                Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
+                                                                                  0.f,
+                                                                                  basis);
+                
+                const Vuforia::TrackableResult* trackableResult = state.getTrackableResult(tIdx);
+                const Vuforia::Trackable& trackable = trackableResult->getTrackable();
+                Vuforia::Matrix34F pose = trackableResult->getPose();
+                Vuforia::Matrix44F modelViewMatrix = Vuforia::Tool::convertPose2GLMatrix(pose);
+                
+                
+//                Eegeo::m44 markerMatrix;
+//                markerMatrix.SetRow(0, Eegeo::v4(modelViewMatrix.data[0], modelViewMatrix.data[1], modelViewMatrix.data[2], modelViewMatrix.data[3]));
+//                markerMatrix.SetRow(1, Eegeo::v4(modelViewMatrix.data[4], modelViewMatrix.data[5], modelViewMatrix.data[6], modelViewMatrix.data[7]));
+//                markerMatrix.SetRow(2, Eegeo::v4(modelViewMatrix.data[8], modelViewMatrix.data[9], modelViewMatrix.data[10], modelViewMatrix.data[11]));
+//                markerMatrix.SetRow(3, Eegeo::v4(modelViewMatrix.data[12], modelViewMatrix.data[13], modelViewMatrix.data[14], modelViewMatrix.data[15]));
+
+//                Eegeo::m44::Inverse(markerMatrix, markerMatrix);
+//                Eegeo::m44::Transpose(markerMatrix, markerMatrix);
+                
+                Vuforia::Matrix44F inverseMV = SampleMath::Matrix44FInverse(modelViewMatrix);
+                Vuforia::Matrix44F invTranspMV = SampleMath::Matrix44FTranspose(inverseMV);
+                
+//                                Eegeo::m44 markerMatrix;
+//                                markerMatrix.SetRow(0, Eegeo::v4(invTranspMV.data[0], invTranspMV.data[1], invTranspMV.data[2], 0));
+//                                markerMatrix.SetRow(1, Eegeo::v4(invTranspMV.data[4], invTranspMV.data[5], invTranspMV.data[6], 0));
+//                                markerMatrix.SetRow(2, -Eegeo::v4(invTranspMV.data[8], invTranspMV.data[9], invTranspMV.data[10], 0));
+//                                markerMatrix.SetRow(3, Eegeo::v4(invTranspMV.data[12], invTranspMV.data[13], invTranspMV.data[14], 1));
+                
+                
+                
+//                Eegeo::m33 markerOrientation;
+//                markerOrientation.SetRow(0, Eegeo::v3(markerMatrix.GetRow(0).x, markerMatrix.GetRow(0).y, markerMatrix.GetRow(0).z));
+//                markerOrientation.SetRow(1, Eegeo::v3(markerMatrix.GetRow(1).x, markerMatrix.GetRow(1).y, markerMatrix.GetRow(1).z));
+//                markerOrientation.SetRow(2, -Eegeo::v3(markerMatrix.GetRow(2).x, markerMatrix.GetRow(2).y, markerMatrix.GetRow(2).z));
+//                markerOrientation.SetRow(0, Eegeo::v3(invTranspMV.data[0], invTranspMV.data[1], invTranspMV.data[2]));
+//                markerOrientation.SetRow(1, Eegeo::v3(invTranspMV.data[4], invTranspMV.data[5], invTranspMV.data[6]));
+//                markerOrientation.SetRow(2, Eegeo::v3(invTranspMV.data[8], invTranspMV.data[9], invTranspMV.data[10]));
+                
+//                Eegeo::m33 boMat;
+//                basis.GetBasisOrientationAsMatrix(boMat);
+//                
+//                Eegeo::m44 basisMatrix;
+//                basisMatrix.SetFromBasis(basis.GetRight(), basis.GetUp(), basis.GetForward(), basis.GetPointEcef().ToSingle());
+//                
+//                Eegeo::m44 resultMatrix;
+//                Eegeo::m44::Mul(resultMatrix, basisMatrix, markerMatrix);
+//                
+//                Eegeo::m33 orientationMatrix;
+//                orientationMatrix.SetRow(0, Eegeo::v3(resultMatrix.GetRow(0).x, resultMatrix.GetRow(0).y, resultMatrix.GetRow(0).z));
+//                orientationMatrix.SetRow(1, Eegeo::v3(resultMatrix.GetRow(1).x, resultMatrix.GetRow(1).y, resultMatrix.GetRow(1).z));
+//                orientationMatrix.SetRow(2, Eegeo::v3(resultMatrix.GetRow(2).x, resultMatrix.GetRow(2).y, resultMatrix.GetRow(2).z));
+//
+//                Eegeo::dv3 position(resultMatrix.GetRow(3).x, resultMatrix.GetRow(3).y, resultMatrix.GetRow(3).z);
+                
+                
+                
+//                m_arCameraController.UpdateFromPose(orientationMatrix, 0.f);
+//                m_arCameraController.SetEcefPosition(position);
+                
+                m_targetPosition = m_interstPoint;
+                m_objectPosition = m_interstPoint + ((invTranspMV.data[12]*basis.GetRight())+(invTranspMV.data[13]*basis.GetForward())+(invTranspMV.data[14]*basis.GetUp()));
+                                m_positionObtained = true;
+                
+               
+//                Eegeo::v3 oD = orientationMatrix.GetRow(2).Norm()*10.;
+//                m_objectPosition = position;
+//                m_targetPosition = position + Eegeo::dv3(oD.x, oD.y, oD.z);
+                
+                m_positionObtained = true;
+                
+                m_arCameraController.SetEcefPosition(m_objectPosition);
+                m_arCameraController.UpdateFromPose(GetLookAtOrientationMatrix(m_targetPosition.ToSingle(), m_objectPosition.ToSingle(), basis.GetUp()), 0.f);
+
+                Eegeo::EegeoUpdateParameters updateParameters(dt,
+                                                              m_objectPosition,
+                                                              m_targetPosition,
+                                                              cameraState.ViewMatrix(),
+                                                              cameraState.ProjectionMatrix(),
+                                                              streamingVolume,
+                                                              screenPropertyProvider.GetScreenProperties());
+                eegeoWorld.Update(updateParameters);
+                
+            }
         }
         
         Eegeo::m33 ARVuforiaController::GetLookAtOrientationMatrix(const Eegeo::v3& targetPosition, const Eegeo::v3& objectPosition, Eegeo::v3 up){
@@ -306,41 +404,19 @@ namespace Eegeo
             
         	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             
-        	Vuforia::State state = Vuforia::Renderer::getInstance().begin();
-
-        	Vuforia::Renderer::getInstance().drawVideoBackground();
-
-        	for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
-        	{
-                
-                Eegeo::Space::EcefTangentBasis basis;
-                Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
-                                                                                  0.f,
-                                                                                  basis);
-                
-        		const Vuforia::TrackableResult* trackableResult = state.getTrackableResult(tIdx);
-                const Vuforia::Trackable& trackable = trackableResult->getTrackable();
-                Vuforia::Matrix34F pose = trackableResult->getPose();
-        		Vuforia::Matrix44F modelViewMatrix = Vuforia::Tool::convertPose2GLMatrix(pose);
-        		Vuforia::Matrix44F inverseMV = SampleMath::Matrix44FInverse(modelViewMatrix);
-        		Vuforia::Matrix44F invTranspMV = SampleMath::Matrix44FTranspose(inverseMV);
-                
-                Eegeo::dv3 targetPosition = m_interstPoint;
-                Eegeo::dv3 objectPosition = m_interstPoint + ((invTranspMV.data[12]*basis.GetRight())+(invTranspMV.data[13]*basis.GetForward())+(invTranspMV.data[14]*basis.GetUp()))*2.f;
-                
-                m_arCameraController.SetEcefPosition(objectPosition);
-                m_arCameraController.UpdateFromPose(GetLookAtOrientationMatrix(targetPosition.ToSingle(), objectPosition.ToSingle(), basis.GetUp()), 0.f);
-
-                
-                Eegeo::EegeoDrawParameters drawParameters(cameraState.LocationEcef(),
-                                                          cameraState.InterestPointEcef(),
+            Vuforia::Renderer::getInstance().drawVideoBackground();
+            
+            if(m_positionObtained)
+            {
+                Eegeo::EegeoDrawParameters drawParameters(m_objectPosition,
+                                                          m_targetPosition,
                                                           cameraState.ViewMatrix(),
                                                           cameraState.ProjectionMatrix(),
                                                           screenPropertyProvider.GetScreenProperties());
                 
                 eegeoWorld.Draw(drawParameters);
-                
-        	}
+            }
+            m_positionObtained = false;
 
         	Vuforia::Renderer::getInstance().end();
         }
