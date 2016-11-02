@@ -19,7 +19,6 @@ namespace Eegeo
         
         Eegeo::dv3 ARCameraController::GetEcefInterestPoint() const
         {
-            
             dv3 ecefPosition = m_ecefPosition;
             return ecefPosition.Normalise() * Eegeo::Space::EarthConstants::Radius;
         }
@@ -49,7 +48,6 @@ namespace Eegeo
         
         void ARCameraController::LookAt(const dv3& ecefPosition)
         {
-            
         }
         
         void ARCameraController::UpdateFromPose(const Eegeo::m33& orientation, float eyeDistance)
@@ -58,7 +56,7 @@ namespace Eegeo
             
             float near, far;
             GetNearFarPlaneDistances(near,far);
-            m_pRenderCamera->SetProjection(0.7f, near*m_nearMultiplier, far);
+            m_pRenderCamera->SetProjection(0.7f, near*m_nearMultiplier, far*10.f);
 
         }
         

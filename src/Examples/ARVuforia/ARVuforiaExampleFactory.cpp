@@ -26,9 +26,10 @@ namespace Examples
 	{
 	    Eegeo::Modules::Map::MapModule& mapModule = m_world.GetMapModule();
 
-	    return new Examples::ARVuforiaExample(m_world,
+	    return new Examples::ARVuforiaExample(m_world, m_world.GetStreamingModule().GetPrecachingService(),
 	                                            m_defaultCameraControllerFactory.Create(),
 												m_screenPropertiesProvider,
+                                                						mapModule,
 												m_arTracker);
 	}
 
