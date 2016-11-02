@@ -170,8 +170,8 @@ namespace Examples
     {
         if(m_sphereVolume!=NULL)
         {
-//            m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, *m_sphereVolume);
-            m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, streamingVolume);
+            m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, *m_sphereVolume);
+            //m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, streamingVolume);
         }
     }
 
