@@ -8,6 +8,8 @@ Include
 bin
 gen
 obj
+**/libs/LICENSE.md
+**/libs/version.txt
 **/libs/eegeo/
 **/libs/armeabi/
 **/libs/armeabi-v7a/
