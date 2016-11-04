@@ -26,6 +26,7 @@ namespace Eegeo
         , m_world(world)
         , m_precacheService(precacheService)
         , m_arCameraController(arCameraController)
+        , m_scale(1.0f)
         {
             
         }
@@ -364,8 +365,8 @@ namespace Eegeo
 //                m_arCameraController.SetEcefPosition(position);
                 
                 m_targetPosition = m_interstPoint;
-                m_objectPosition = m_interstPoint + ((invTranspMV.data[12]*basis.GetRight())+(invTranspMV.data[13]*basis.GetForward())+(invTranspMV.data[14]*basis.GetUp()));
-                                m_positionObtained = true;
+                m_objectPosition = m_interstPoint + (((invTranspMV.data[12]*basis.GetRight())+(invTranspMV.data[13]*basis.GetForward())+(invTranspMV.data[14]*basis.GetUp())) * m_scale);
+               
                 
                
 //                Eegeo::v3 oD = orientationMatrix.GetRow(2).Norm()*10.;
@@ -419,6 +420,22 @@ namespace Eegeo
             m_positionObtained = false;
 
         	Vuforia::Renderer::getInstance().end();
+        }
+
+        void ARVuforiaController::Event_TouchPinch (const AppInterface::PinchData& data)
+        {
+            if(Eegeo::Math::Abs(data.scale) < 0.1f )
+            {
+                m_scale += data.scale * 3;
+            }
+            if(m_scale < 0.7f)
+            {
+                m_scale = 0.7f;
+            }
+            if(m_scale > 4.f)
+            {
+                m_scale = 4.f;
+            }
         }
 
     }

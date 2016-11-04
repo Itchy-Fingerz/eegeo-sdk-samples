@@ -32,6 +32,7 @@
 #include "IStreamingVolume.h"
 #include "ARCameraController.h"
 #include "SampleMath.h"
+#include "AppInterface.h"
 
 namespace Eegeo
 {
@@ -81,6 +82,7 @@ namespace Eegeo
             Eegeo::dv3 m_interstPoint;
             
             Eegeo::Web::PrecacheService& m_precacheService;
+            double m_scale;
         public:
             
             ARVuforiaController(int width,
@@ -112,6 +114,8 @@ namespace Eegeo
             Eegeo::m33 GetLookAtOrientationMatrix(const Eegeo::v3& targetPosition, const Eegeo::v3& objectPosition, Eegeo::v3 up);
             
             void Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
+
+            void Event_TouchPinch (const AppInterface::PinchData& data);
         };
 
     }
