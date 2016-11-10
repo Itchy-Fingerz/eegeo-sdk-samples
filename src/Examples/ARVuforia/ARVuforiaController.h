@@ -80,6 +80,7 @@ namespace Eegeo
             Eegeo::AR::ARCameraController& m_arCameraController;
             
             Eegeo::dv3 m_interstPoint;
+            Eegeo::dv3 m_cachedInterstPoint;
             
             Eegeo::Web::PrecacheService& m_precacheService;
             double m_scale;
@@ -114,8 +115,12 @@ namespace Eegeo
             Eegeo::m33 GetLookAtOrientationMatrix(const Eegeo::v3& targetPosition, const Eegeo::v3& objectPosition, Eegeo::v3 up);
             
             void Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
+            
+            Eegeo::dv3 GetInterestPoint(){return m_interstPoint;}
 
             void Event_TouchPinch (const AppInterface::PinchData& data);
+            void Event_TouchPan (const AppInterface::PanData& data);
+            void Event_TouchPan_Start (const AppInterface::PanData& data);
         };
 
     }

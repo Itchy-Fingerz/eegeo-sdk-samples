@@ -94,8 +94,8 @@ namespace Examples
 		void Event_TouchPinch_Start (const AppInterface::PinchData& data) { }
 		void Event_TouchPinch_End (const AppInterface::PinchData& data) { }
 
-		void Event_TouchPan (const AppInterface::PanData& data) { }
-		void Event_TouchPan_Start (const AppInterface::PanData& data) { }
+        void Event_TouchPan (const AppInterface::PanData& data) { m_pARController->Event_TouchPan(data); }
+        void Event_TouchPan_Start (const AppInterface::PanData& data) { m_pARController->Event_TouchPan_Start(data); }
 		void Event_TouchPan_End (const AppInterface::PanData& data) { }
 
 		void Event_TouchTap (const AppInterface::TapData& data) { }

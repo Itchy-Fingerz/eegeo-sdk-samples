@@ -2,6 +2,7 @@
 #include "CameraFrustumStreamingVolume.h"
 #include "StreamingVolumeController.h"
 #include "ARVuforiaController.h"
+#include "SpaceHelpers.h"
 #include "EcefTangentBasis.h"
 #include "CameraHelpers.h"
 
@@ -436,6 +437,32 @@ namespace Eegeo
             {
                 m_scale = 4.f;
             }
+        }
+        
+        void ARVuforiaController::Event_TouchPan (const AppInterface::PanData& data)
+        {
+            
+            Eegeo::Space::EcefTangentBasis basis;
+            Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
+                                                                              0.f,
+                                                                              basis);
+//            float d = Space::SpaceHelpers::GetAltitude(m_objectPosition);
+            float d = Math::Abs((m_objectPosition - m_targetPosition).Length());
+            float mpp = (Eegeo::Math::Tan(0.35)*d) / data.majorScreenDimension;
+
+            //EXAMPLE_LOG("scaling (%f, %f, %f, %f) ", Eegeo::Math::Tan(0.35), Space::SpaceHelpers::GetAltitude(m_objectPosition), data.majorScreenDimension, ppm);
+            
+            Eegeo::v3 p = (basis.GetForward()*data.pointRelative.GetX()) + (basis.GetRight()*data.pointRelative.GetY()); p = p*mpp;
+            m_interstPoint = m_cachedInterstPoint + Eegeo::dv3(p.x, p.y, p.z) ;
+            
+            EXAMPLE_LOG("panning (%f, %f) | (%f, %f) | (%f, %f) |", data.pointRelativeNormalized.GetX(), data.pointRelativeNormalized.GetY(),
+                        data.pointRelative.GetX(), data.pointRelative.GetY(),
+                        data.pointAbsolute.GetX(), data.pointAbsolute.GetY());
+        }
+        
+        void ARVuforiaController::Event_TouchPan_Start (const AppInterface::PanData& data)
+        {
+            m_cachedInterstPoint = m_interstPoint;
         }
 
     }
