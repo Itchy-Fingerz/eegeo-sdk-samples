@@ -364,7 +364,6 @@ namespace Eegeo
                 
 //                m_arCameraController.UpdateFromPose(orientationMatrix, 0.f);
 //                m_arCameraController.SetEcefPosition(position);
-                
                 m_targetPosition = m_interstPoint;
                 m_objectPosition = m_interstPoint + (((invTranspMV.data[12]*basis.GetRight())+(invTranspMV.data[13]*basis.GetForward())+(invTranspMV.data[14]*basis.GetUp())) * m_scale);
                
@@ -441,18 +440,21 @@ namespace Eegeo
         
         void ARVuforiaController::Event_TouchPan (const AppInterface::PanData& data)
         {
-            
+            float cameraHeading = Eegeo::Camera::CameraHelpers::GetAbsoluteBearingRadians(m_interstPoint, m_objectPosition.ToSingle());
             Eegeo::Space::EcefTangentBasis basis;
             Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
-                                                                              0.f,
+                                                                              Eegeo::Math::Rad2Deg(cameraHeading),
                                                                               basis);
 //            float d = Space::SpaceHelpers::GetAltitude(m_objectPosition);
-            float d = Math::Abs((m_objectPosition - m_targetPosition).Length());
+           // float d = Math::Abs((m_objectPosition - m_targetPosition).Length());
+            float d = (m_targetPosition - m_objectPosition).Length();
             float mpp = (Eegeo::Math::Tan(0.35)*d) / data.majorScreenDimension;
 
             //EXAMPLE_LOG("scaling (%f, %f, %f, %f) ", Eegeo::Math::Tan(0.35), Space::SpaceHelpers::GetAltitude(m_objectPosition), data.majorScreenDimension, ppm);
             
-            Eegeo::v3 p = (basis.GetForward()*data.pointRelative.GetX()) + (basis.GetRight()*data.pointRelative.GetY()); p = p*mpp;
+            //Eegeo::v3 p = (basis.GetForward()*data.pointRelative.GetX()) + (basis.GetRight()*data.pointRelative.GetY());
+            Eegeo::v3 p = (basis.GetForward() * data.pointRelative.GetY() * -1.f) + (basis.GetRight() * data.pointRelative.GetX());
+            p = p*mpp;
             m_interstPoint = m_cachedInterstPoint + Eegeo::dv3(p.x, p.y, p.z) ;
             
             EXAMPLE_LOG("panning (%f, %f) | (%f, %f) | (%f, %f) |", data.pointRelativeNormalized.GetX(), data.pointRelativeNormalized.GetY(),
@@ -464,6 +466,5 @@ namespace Eegeo
         {
             m_cachedInterstPoint = m_interstPoint;
         }
-
     }
 }

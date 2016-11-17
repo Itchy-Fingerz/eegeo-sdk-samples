@@ -34,7 +34,7 @@ namespace Examples
         bool m_precacheComplete;
         
         Eegeo::Web::PrecacheService& m_precacheService;
-        SphereVolume* m_sphereVolume;
+        SphereVolume* m_pSphereVolume;
         
 	public:
 

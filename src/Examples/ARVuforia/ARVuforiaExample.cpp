@@ -86,13 +86,12 @@ namespace Examples
 	, m_arTracker(arTracker)
     , m_startedPrecaching(false)
     , m_precacheComplete(false)
-    
+    , m_pSphereVolume(NULL)
     {
         Eegeo::m44 projectionMatrix = Eegeo::m44(pCameraController->GetRenderCamera().GetProjectionMatrix());
         m_pCameraController = new Eegeo::AR::ARCameraController(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight());
         m_pCameraController->GetCamera().SetProjectionMatrix(projectionMatrix);
         m_pARController = Eegeo_NEW(Eegeo::AR::ARVuforiaController)(initialScreenProperties.GetScreenProperties().GetScreenWidth(), initialScreenProperties.GetScreenProperties().GetScreenHeight(), mapModule, precacheService, eegeoWorld, *m_pCameraController);
-        m_sphereVolume = NULL;
         NotifyScreenPropertiesChanged(initialScreenProperties.GetScreenProperties());
     }
     
@@ -100,9 +99,9 @@ namespace Examples
 	{
 		delete m_pCameraController;
 	    Eegeo_DELETE m_pARController;
-        if(m_sphereVolume!=NULL)
+        if(m_pSphereVolume!=NULL)
         {
-            Eegeo_DELETE m_sphereVolume;
+            Eegeo_DELETE m_pSphereVolume;
         }
     }
     
@@ -115,20 +114,25 @@ namespace Examples
     
     void ARVuforiaExample::Update(float dt)
     {
+        EXAMPLE_LOG("ARVuforiaExample::Update");
         if(!m_world.Initialising() && !m_startedPrecaching && !m_precacheService.CurrentlyPrecaching())
         {
+            EXAMPLE_LOG("dv3 ( %f, %f, %f)", m_pARController->GetInterestPoint().GetX(), m_pARController->GetInterestPoint().GetY(), m_pARController->GetInterestPoint().GetZ());
+            Eegeo::Space::LatLongAltitude latLongAltitude = Eegeo::Space::LatLongAltitude::FromECEF(m_pARController->GetInterestPoint());
+            //EXAMPLE_LOG("LatLong ( %f, %f )", latLongAltitude.GetLatitude(), latLongAltitude.GetLongitude());
             double sphereVolumeCentreLatitudeDegrees = 40.763647;
             double sphereVolumeCentreLongitudeDegrees = -73.973468;
             double sphereVolumeRadiusMetres = 1.0;
             
-            if(m_sphereVolume==NULL)
+            if(m_pSphereVolume!=NULL)
             {
-                m_sphereVolume = Eegeo_NEW(SphereVolume)(sphereVolumeCentreLatitudeDegrees, sphereVolumeCentreLongitudeDegrees, sphereVolumeRadiusMetres);
+                Eegeo_DELETE m_pSphereVolume;
             }
+            m_pSphereVolume = Eegeo_NEW(SphereVolume)(sphereVolumeCentreLatitudeDegrees, sphereVolumeCentreLongitudeDegrees, sphereVolumeRadiusMetres);
+            //m_pSphereVolume = Eegeo_NEW(SphereVolume)(latLongAltitude.GetLatitude(), sphereVolumeCentreLongitudeDegrees, sphereVolumeRadiusMetres);
             
-//            SphereVolume volume(sphereVolumeCentreLatitudeDegrees, sphereVolumeCentreLongitudeDegrees, sphereVolumeRadiusMetres);
-            m_precacheService.Precache(*m_sphereVolume);
-            m_sphereVolume->PrintIntersectedKeys();
+            m_precacheService.Precache(*m_pSphereVolume);
+            m_pSphereVolume->PrintIntersectedKeys();
             m_startedPrecaching = true;
             EXAMPLE_LOG("logs::::: Precache started!\n");
         }
@@ -168,9 +172,9 @@ namespace Examples
 
     void ARVuforiaExample::UpdateWorld(float dt, Eegeo::EegeoWorld& world, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
     {
-        if(m_sphereVolume!=NULL)
+        if(m_pSphereVolume!=NULL)
         {
-            m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, *m_sphereVolume);
+            m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, *m_pSphereVolume);
             //m_pARController->Update(dt, GetCurrentCameraState(), m_world, screenPropertyProvider, streamingVolume);
         }
     }

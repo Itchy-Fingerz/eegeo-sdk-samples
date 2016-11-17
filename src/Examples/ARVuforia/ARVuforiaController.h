@@ -116,7 +116,7 @@ namespace Eegeo
             
             void Draw (Eegeo::EegeoWorld& eegeoWorld, Eegeo::Camera::CameraState cameraState, Examples::ScreenPropertiesProvider& screenPropertyProvider);
             
-            Eegeo::dv3 GetInterestPoint(){return m_interstPoint;}
+            const Eegeo::dv3& GetInterestPoint(){return m_interstPoint;}
 
             void Event_TouchPinch (const AppInterface::PinchData& data);
             void Event_TouchPan (const AppInterface::PanData& data);
