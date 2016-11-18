@@ -28,6 +28,7 @@ namespace Eegeo
         , m_precacheService(precacheService)
         , m_arCameraController(arCameraController)
         , m_scale(1.0f)
+        , m_rotationHeading(0.f)
         {
             
         }
@@ -307,7 +308,7 @@ namespace Eegeo
                 
                 Eegeo::Space::EcefTangentBasis basis;
                 Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
-                                                                                  0.f,
+                                                                                  -m_rotationHeading,
                                                                                   basis);
                 
                 const Vuforia::TrackableResult* trackableResult = state.getTrackableResult(tIdx);
@@ -445,26 +446,26 @@ namespace Eegeo
             Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
                                                                               Eegeo::Math::Rad2Deg(cameraHeading),
                                                                               basis);
-//            float d = Space::SpaceHelpers::GetAltitude(m_objectPosition);
-           // float d = Math::Abs((m_objectPosition - m_targetPosition).Length());
             float d = (m_targetPosition - m_objectPosition).Length();
             float mpp = (Eegeo::Math::Tan(0.35)*d) / data.majorScreenDimension;
-
-            //EXAMPLE_LOG("scaling (%f, %f, %f, %f) ", Eegeo::Math::Tan(0.35), Space::SpaceHelpers::GetAltitude(m_objectPosition), data.majorScreenDimension, ppm);
-            
-            //Eegeo::v3 p = (basis.GetForward()*data.pointRelative.GetX()) + (basis.GetRight()*data.pointRelative.GetY());
             Eegeo::v3 p = (basis.GetForward() * data.pointRelative.GetY() * -1.f) + (basis.GetRight() * data.pointRelative.GetX());
             p = p*mpp;
             m_interstPoint = m_cachedInterstPoint + Eegeo::dv3(p.x, p.y, p.z) ;
-            
-            EXAMPLE_LOG("panning (%f, %f) | (%f, %f) | (%f, %f) |", data.pointRelativeNormalized.GetX(), data.pointRelativeNormalized.GetY(),
-                        data.pointRelative.GetX(), data.pointRelative.GetY(),
-                        data.pointAbsolute.GetX(), data.pointAbsolute.GetY());
         }
         
         void ARVuforiaController::Event_TouchPan_Start (const AppInterface::PanData& data)
         {
             m_cachedInterstPoint = m_interstPoint;
+        }
+        
+        void ARVuforiaController::Event_TouchRotate (const AppInterface::RotateData& data)
+        {
+            m_rotationHeading = m_cachedRotationData + Eegeo::Math::Rad2Deg(data.rotation);
+        }
+        
+        void ARVuforiaController::Event_TouchRotate_Start (const AppInterface::RotateData& data)
+        {
+            m_cachedRotationData = m_rotationHeading;
         }
     }
 }

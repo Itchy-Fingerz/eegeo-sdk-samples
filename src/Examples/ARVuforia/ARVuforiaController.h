@@ -84,6 +84,8 @@ namespace Eegeo
             
             Eegeo::Web::PrecacheService& m_precacheService;
             double m_scale;
+            double m_rotationHeading;
+            double m_cachedRotationData;
         public:
             
             ARVuforiaController(int width,
@@ -121,6 +123,8 @@ namespace Eegeo
             void Event_TouchPinch (const AppInterface::PinchData& data);
             void Event_TouchPan (const AppInterface::PanData& data);
             void Event_TouchPan_Start (const AppInterface::PanData& data);
+            void Event_TouchRotate (const AppInterface::RotateData& data);
+            void Event_TouchRotate_Start (const AppInterface::RotateData& data);
         };
 
     }

@@ -114,7 +114,6 @@ namespace Examples
     
     void ARVuforiaExample::Update(float dt)
     {
-        EXAMPLE_LOG("ARVuforiaExample::Update");
         if(!m_world.Initialising() && !m_startedPrecaching && !m_precacheService.CurrentlyPrecaching())
         {
             EXAMPLE_LOG("dv3 ( %f, %f, %f)", m_pARController->GetInterestPoint().GetX(), m_pARController->GetInterestPoint().GetY(), m_pARController->GetInterestPoint().GetZ());

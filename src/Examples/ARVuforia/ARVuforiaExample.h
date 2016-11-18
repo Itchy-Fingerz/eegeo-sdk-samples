@@ -86,8 +86,8 @@ namespace Examples
 
 		void NotifyViewNeedsLayout() {}
 
-		void Event_TouchRotate (const AppInterface::RotateData& data) { }
-		void Event_TouchRotate_Start (const AppInterface::RotateData& data) { }
+        void Event_TouchRotate (const AppInterface::RotateData& data) { m_pARController->Event_TouchRotate(data); }
+        void Event_TouchRotate_Start (const AppInterface::RotateData& data) { m_pARController->Event_TouchRotate_Start(data); }
 		void Event_TouchRotate_End (const AppInterface::RotateData& data) { }
 
 		void Event_TouchPinch (const AppInterface::PinchData& data) { m_pARController->Event_TouchPinch(data); }
