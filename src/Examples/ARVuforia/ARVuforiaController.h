@@ -49,6 +49,7 @@ namespace Eegeo
             
             bool m_startedPrecaching;
             bool m_precacheComplete;
+            bool m_isTracking;
             
             Eegeo::EegeoWorld& m_world;
             

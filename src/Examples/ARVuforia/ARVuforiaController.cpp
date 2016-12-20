@@ -29,6 +29,7 @@ namespace Eegeo
         , m_arCameraController(arCameraController)
         , m_scale(1.0f)
         , m_rotationHeading(0.f)
+        , m_isTracking(false)
         {
             
         }
@@ -154,6 +155,7 @@ namespace Eegeo
         {
             StartCamera();
             m_interstPoint = m_arCameraController.GetCameraPosition();
+            m_objectPosition = m_interstPoint;
         }
         
         void ARVuforiaController::RenderFrame()
@@ -300,12 +302,12 @@ namespace Eegeo
 
         void ARVuforiaController::Update(float dt, const Eegeo::Camera::CameraState cameraState, Eegeo::EegeoWorld& eegeoWorld, Examples::ScreenPropertiesProvider& screenPropertyProvider, Eegeo::Streaming::IStreamingVolume& streamingVolume)
         {
-            
+            m_isTracking = false;
             Vuforia::State state = Vuforia::Renderer::getInstance().begin();
             
             for(int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
             {
-                
+                m_isTracking = true;
                 Eegeo::Space::EcefTangentBasis basis;
                 Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
                                                                                   -m_rotationHeading,
@@ -441,16 +443,19 @@ namespace Eegeo
         
         void ARVuforiaController::Event_TouchPan (const AppInterface::PanData& data)
         {
-            float cameraHeading = Eegeo::Camera::CameraHelpers::GetAbsoluteBearingRadians(m_interstPoint, m_objectPosition.ToSingle());
-            Eegeo::Space::EcefTangentBasis basis;
-            Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
-                                                                              Eegeo::Math::Rad2Deg(cameraHeading),
-                                                                              basis);
-            float d = (m_targetPosition - m_objectPosition).Length();
-            float mpp = (Eegeo::Math::Tan(0.35)*d) / data.majorScreenDimension;
-            Eegeo::v3 p = (basis.GetForward() * data.pointRelative.GetY() * -1.f) + (basis.GetRight() * data.pointRelative.GetX());
-            p = p*mpp;
-            m_interstPoint = m_cachedInterstPoint + Eegeo::dv3(p.x, p.y, p.z) ;
+            if (m_isTracking)
+            {
+                float cameraHeading = Eegeo::Camera::CameraHelpers::GetAbsoluteBearingRadians(m_interstPoint, m_objectPosition.ToSingle());
+                Eegeo::Space::EcefTangentBasis basis;
+                Eegeo::Camera::CameraHelpers::EcefTangentBasisFromPointAndHeading(m_interstPoint,
+                                                                                  Eegeo::Math::Rad2Deg(cameraHeading),
+                                                                                  basis);
+                float d = (m_targetPosition - m_objectPosition).Length();
+                float mpp = (Eegeo::Math::Tan(0.35)*d) / data.majorScreenDimension;
+                Eegeo::v3 p = (basis.GetForward() * data.pointRelative.GetY() * -1.f) + (basis.GetRight() * data.pointRelative.GetX());
+                p = p*mpp;
+                m_interstPoint = m_cachedInterstPoint + Eegeo::dv3(p.x, p.y, p.z) ;
+            }
         }
         
         void ARVuforiaController::Event_TouchPan_Start (const AppInterface::PanData& data)
@@ -460,7 +465,10 @@ namespace Eegeo
         
         void ARVuforiaController::Event_TouchRotate (const AppInterface::RotateData& data)
         {
-            m_rotationHeading = m_cachedRotationData + Eegeo::Math::Rad2Deg(data.rotation);
+            if (m_isTracking)
+            {
+                m_rotationHeading = m_cachedRotationData + Eegeo::Math::Rad2Deg(data.rotation);
+            }
         }
         
         void ARVuforiaController::Event_TouchRotate_Start (const AppInterface::RotateData& data)
